@@ -1,0 +1,31 @@
+<style>
+.json-tool{max-width:1100px;margin:0 auto;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.json-panel{background:var(--color-bg-secondary);border-radius:14px;border:1px solid var(--color-border-primary);overflow:hidden;padding:16px}
+.json-tool-btn{display:flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:13px;color:#fff;font-weight:600;background:var(--color-brand);border:none;font-family:inherit}
+.json-tool-btn:hover{background:var(--color-brand-hover)}
+.json-tool-btn.ghost{background:transparent;color:var(--color-brand);border:1px solid var(--color-border-primary)}
+.json-tool-btn.ghost:hover{border-color:var(--color-brand)}
+.id-output{background:var(--color-bg-tertiary);border:1px solid var(--color-border-primary);border-radius:12px;padding:16px;font-family:'SF Mono','Menlo',monospace;font-size:13px;line-height:2;color:var(--color-text-primary);white-space:pre-wrap;word-break:break-all;min-height:80px;margin-bottom:16px}
+.id-row{display:flex;gap:8px;flex-wrap:wrap}
+.json-copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:8px 20px;background:var(--color-success);color:#fff;border-radius:20px;font-size:13px;font-weight:600;z-index:999;animation:jsonPop .3s ease-out}
+@keyframes jsonPop{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+
+<div class="json-tool">
+  <div class="json-panel">
+    <div class="id-output" id="idOutput"></div>
+    <div class="id-row">
+      <button class="json-tool-btn" onclick="genIds()">重新生成</button>
+      <button class="json-tool-btn ghost" onclick="copyAll()">复制全部</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function uuid4(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)})}
+function nanoId(l){var ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-';var id='';for(var i=0;i<(l||21);i++)id+=ch[Math.random()*ch.length|0];return id}
+function shortId(){return Math.random().toString(36).substring(2,10)}
+function genIds(){document.getElementById('idOutput').textContent='UUID v4:  '+uuid4()+'\nNano ID:  '+nanoId()+'\n短 ID:     '+shortId()}
+function copyAll(){var t=document.getElementById('idOutput').textContent;if(navigator.clipboard)navigator.clipboard.writeText(t);var d=document.createElement('div');d.className='json-copied';d.textContent='✓ 已复制';document.body.appendChild(d);setTimeout(function(){d.remove()},1500)}
+genIds();
+</script>

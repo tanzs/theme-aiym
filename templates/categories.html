@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <div class="categories">
+        <header class="categories-header">
+            <h1 class="categories-title">文章分类</h1>
+        </header>
+
+        <div class="categories-cloud">
+            <a th:each="cat : ${categories.items}"
+               th:href="@{${cat.status.permalink}}"
+               class="category-cloud-item"
+               th:text="${cat.spec.displayName}">
+            </a>
+        </div>
+    </div>
+</th:block>
+
+</html>

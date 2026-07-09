@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <article class="resource-detail" itemscope itemtype="http://schema.org/SoftwareApplication"
+             th:with="downloadUrl = ${#annotations.get(post, 'theme.aiym.fun/download-url') ?: #annotations.get(post, 'downloadUrl')},
+                      iconUrl = ${#annotations.get(post, 'theme.aiym.fun/icon-url') ?: #annotations.get(post, 'iconUrl')},
+                      version = ${#annotations.get(post, 'theme.aiym.fun/version') ?: #annotations.get(post, 'version')},
+                      platform = ${#annotations.get(post, 'theme.aiym.fun/platform') ?: #annotations.get(post, 'platform')},
+                      cursor = ${postFinder.cursor(post.metadata.name)}">
+
+        <!-- Hero 封面图 -->
+        <div class="resource-hero" th:if="${post.spec.cover}">
+            <img th:src="${post.spec.cover}" th:alt="${post.spec.title}" class="resource-hero__img" loading="lazy">
+            <div class="resource-hero__overlay"></div>
+        </div>
+
+        <!-- 资源信息区 -->
+        <header class="resource-header">
+            <div class="resource-header__icon" th:if="${iconUrl}">
+                <img th:src="${iconUrl}" alt="" loading="lazy">
+            </div>
+            <h1 class="resource-title" itemprop="name" th:text="${post.spec.title}">资源名称</h1>
+
+            <div class="resource-meta">
+                <span th:if="${version}" class="resource-meta__item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    版本: <span th:text="${version}">1.0.0</span>
+                </span>
+                <span class="resource-meta__item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    平台: <span th:text="${platform ?: '全平台'}">全平台</span>
+                </span>
+            </div>
+
+            <!-- 下载操作区 -->
+            <div class="resource-actions">
+                <a th:if="${downloadUrl}"
+                   th:href="${downloadUrl}"
+                   class="resource-download-btn"
+                   target="_blank"
+                   rel="noopener">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span th:text="${theme.config.resource?.downloadButtonText ?: '立即下载'}">立即下载</span>
+                </a>
+                <div th:unless="${downloadUrl}" class="resource-download-disabled">
+                    <span th:text="${theme.config.resource?.noDownloadTip ?: '暂未提供下载地址'}">暂未提供下载地址</span>
+                </div>
+                <button th:if="${downloadUrl}" class="resource-copy-btn" data-copy-url th:attr="data-url=${downloadUrl}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    复制链接
+                </button>
+            </div>
+        </header>
+
+        <!-- 资源正文 -->
+        <div class="post-content resource-content" itemprop="description" th:utext="${post.content?.content}" data-post-content>
+        </div>
+
+        <!-- 免责声明 -->
+        <div th:if="${theme.config.resource?.showDisclaimer != false and theme.config.resource?.disclaimerContent}"
+             class="resource-disclaimer">
+            <h3 class="resource-disclaimer__title">免责声明</h3>
+            <div class="resource-disclaimer__content" th:utext="${theme.config.resource?.disclaimerContent}">
+            </div>
+        </div>
+
+        <!-- 上下篇导航 -->
+        <nav class="post-nav" th:if="${cursor.hasPrevious() or cursor.hasNext()}">
+            <a th:if="${cursor.hasPrevious()}"
+               th:href="@{${cursor.previous.status?.permalink}}"
+               class="post-nav__item">
+                <span class="post-nav__label">上一篇</span>
+                <span class="post-nav__title" th:text="${cursor.previous.spec.title}">上一篇文章</span>
+            </a>
+            <a th:if="${cursor.hasNext()}"
+               th:href="@{${cursor.next.status?.permalink}}"
+               class="post-nav__item post-nav__item--next">
+                <span class="post-nav__label">下一篇</span>
+                <span class="post-nav__title" th:text="${cursor.next.spec.title}">下一篇文章</span>
+            </a>
+        </nav>
+
+        <!-- 评论区 -->
+        <div th:replace="~{modules/comment :: comment-post}"></div>
+    </article>
+</th:block>
+
+</html>

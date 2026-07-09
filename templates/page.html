@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <article class="page">
+        <header class="page-header">
+            <h1 class="page-title" th:text="${singlePage.spec.title}">页面标题</h1>
+        </header>
+        <div class="page-content" th:utext="${singlePage.content?.content}">
+        </div>
+        <div th:replace="~{modules/comment :: comment-page}"></div>
+    </article>
+</th:block>
+
+</html>

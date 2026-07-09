@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <style>
+    .resources-page { padding: 14px 0 64px; }
+    @media (min-width: 768px) { .resources-page { padding: 20px 0 80px; } }
+
+    .res-hero { text-align: center; margin-bottom: 24px; }
+    .res-hero__icon { font-size: 42px; margin-bottom: 8px; }
+    .res-hero__title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    @media (min-width: 768px) { .res-hero__title { font-size: 28px; } }
+    .res-hero__desc { font-size: 13px; color: var(--color-text-muted); }
+
+    /* section-title */
+    .res-section { padding: 14px 0 0; }
+    .res-section-title {
+        font-size: 17px; font-weight: 700; color: var(--color-text-primary);
+        margin-bottom: 14px; padding: 0 4px 0 12px; display: block; position: relative;
+    }
+    .res-section-title::before {
+        content: ''; position: absolute; left: 0; top: 2px; bottom: 2px;
+        width: 3px; border-radius: 2px;
+        background: linear-gradient(180deg, var(--color-brand), var(--color-brand-hover));
+    }
+
+    /* 筛选栏 */
+    .res-filter { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 14px; scrollbar-width: none; }
+    .res-filter::-webkit-scrollbar { display: none; }
+    .res-filter-chip {
+        display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 12px;
+        color: var(--color-text-secondary); background: var(--color-bg-secondary);
+        border: 1px solid var(--color-border-primary); cursor: pointer; transition: all 0.25s ease;
+        white-space: nowrap; font-family: inherit;
+    }
+    .res-filter-chip.active {
+        background: var(--color-brand); color: #fff; border-color: var(--color-brand);
+        font-weight: 600; box-shadow: 0 2px 8px rgba(var(--color-brand-rgb), 0.3);
+    }
+    .res-filter-chip:active { transform: scale(0.975); }
+
+    /* 横滑 */
+    .res-hot-scroll {
+        display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+        padding-bottom: 8px; scroll-snap-type: x proximity; scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;
+        scrollbar-width: none; cursor: grab; transform: translateZ(0); will-change: scroll-position;
+    }
+    .res-hot-scroll::-webkit-scrollbar { display: none; }
+    .res-hot-scroll.is-dragging { cursor: grabbing; scroll-snap-type: none; scroll-behavior: auto; }
+
+    .res-hot-card {
+        flex-shrink: 0; width: 360px; background: var(--color-bg-secondary);
+        border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease;
+        scroll-snap-align: start;
+    }
+    .res-hot-card:active { transform: scale(0.98); transition-duration: 0.08s; }
+    @media (hover: hover) { .res-hot-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); } }
+    .res-hot-card a { text-decoration: none; color: inherit; display: block; }
+
+    .res-hot-cover { width: 100%; height: 160px; overflow: hidden; background: var(--color-bg-tertiary); display: flex; align-items: center; justify-content: center; position: relative; }
+    .res-hot-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .res-hot-cover img[loading] { opacity: 0; transition: opacity 0.3s; }
+    .res-hot-cover img.loaded { opacity: 1; }
+    .res-hot-cover-letter { font-size: 48px; font-weight: 800; color: rgba(255,255,255,0.85); text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+    .res-hot-bottom { display: flex; align-items: center; gap: 10px; padding: 12px; }
+    .res-hot-icon {
+        width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+    }
+    .res-hot-icon img { width: 28px; height: 28px; }
+    .res-hot-icon.no-bg { background: transparent !important; box-shadow: none; border-radius: 50%; }
+    .res-hot-icon.no-bg img { width: 100%; height: 100%; }
+    .res-hot-icon-letter { font-size: 20px; font-weight: 700; color: rgba(255,255,255,0.9); }
+
+    .res-hot-info { flex: 1; min-width: 0; overflow: hidden; }
+    .res-hot-name { font-size: 14px; font-weight: 600; color: var(--color-text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .res-hot-desc { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; min-height: 15px; }
+
+    .res-hot-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .res-hot-stats { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--color-text-muted); }
+    .res-hot-stat { display: inline-flex; align-items: center; gap: 3px; }
+    .res-hot-btn { padding: 4px 12px; border-radius: 20px; background: rgba(var(--color-brand-rgb), 0.1); font-size: 12px; color: var(--color-brand); font-weight: 500; }
+
+    /* 全部资源 */
+    .res-tool-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding-bottom: 12px; }
+    @media (min-width: 768px) { .res-tool-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+    .res-tool-card {
+        display: flex; align-items: center; gap: 12px; padding: 12px; min-width: 0;
+        background: var(--color-bg-secondary); border-radius: 14px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04); cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .res-tool-card:active { transform: scale(0.98); transition-duration: 0.08s; }
+    @media (hover: hover) { .res-tool-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); } }
+    .res-tool-card a { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 12px; min-width: 0; width: 100%; }
+
+    .res-tool-icon {
+        width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        background: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+    }
+    .res-tool-icon img { width: 32px; height: 32px; }
+    .res-tool-icon.no-bg { background: transparent !important; box-shadow: none; border-radius: 50%; }
+    .res-tool-icon.no-bg img { width: 100%; height: 100%; }
+    .res-tool-icon-letter { font-size: 24px; font-weight: 800; color: rgba(255,255,255,0.9); text-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+
+    .res-tool-info { flex: 1; min-width: 0; overflow: hidden; }
+    .res-tool-name { font-size: 14px; font-weight: 600; color: var(--color-text-primary); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .res-tool-desc { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; min-height: 15px; }
+
+    .res-tool-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .res-tool-tags { display: flex; gap: 3px; overflow: hidden; }
+    .res-tool-tag { font-size: 9px; color: var(--color-brand); background: rgba(var(--color-brand-rgb), 0.06); padding: 1px 5px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
+    .res-tool-stats { display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 11px; color: var(--color-text-muted); }
+    .res-tool-stat { display: flex; align-items: center; gap: 3px; }
+    .res-tool-btn { padding: 4px 12px; border-radius: 20px; background: rgba(var(--color-brand-rgb), 0.1); font-size: 12px; color: var(--color-brand); font-weight: 500; }
+
+    .res-empty { text-align: center; padding: 48px 16px; color: var(--color-text-muted); }
+    .res-empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+    .res-empty-text { font-size: 14px; }
+
+    /* 骨架屏 */
+    @keyframes resShimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .res-skeleton { background: var(--color-bg-secondary); border-radius: 8px; }
+    .res-skeleton-hot { display: flex; gap: 12px; overflow: hidden; }
+    .res-skeleton-hot-card { flex-shrink: 0; width: 360px; background: var(--color-bg-secondary); border-radius: 14px; overflow: hidden; }
+    .res-skeleton-cover { width: 100%; height: 160px; background: linear-gradient(90deg, var(--color-bg-secondary) 25%, rgba(0,0,0,0.04) 50%, var(--color-bg-secondary) 75%); background-size: 800px 100%; animation: resShimmer 1.5s infinite; }
+    .res-skeleton-bottom { display: flex; align-items: center; gap: 10px; padding: 12px; }
+    .res-skeleton-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(90deg, var(--color-bg-secondary) 25%, rgba(0,0,0,0.04) 50%, var(--color-bg-secondary) 75%); background-size: 800px 100%; animation: resShimmer 1.5s infinite; flex-shrink: 0; }
+    .res-skeleton-lines { flex: 1; }
+    .res-skeleton-bar { height: 12px; border-radius: 6px; margin-bottom: 6px; background: linear-gradient(90deg, var(--color-bg-secondary) 25%, rgba(0,0,0,0.04) 50%, var(--color-bg-secondary) 75%); background-size: 800px 100%; animation: resShimmer 1.5s infinite; }
+    .res-skeleton-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--color-bg-secondary); border-radius: 14px; }
+    .res-skeleton-card-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(90deg, var(--color-bg-secondary) 25%, rgba(0,0,0,0.04) 50%, var(--color-bg-secondary) 75%); background-size: 800px 100%; animation: resShimmer 1.5s infinite; flex-shrink: 0; }
+    .res-skeleton-card-lines { flex: 1; }
+    .res-skeleton-card-bar { height: 12px; border-radius: 6px; margin-bottom: 6px; background: linear-gradient(90deg, var(--color-bg-secondary) 25%, rgba(0,0,0,0.04) 50%, var(--color-bg-secondary) 75%); background-size: 800px 100%; animation: resShimmer 1.5s infinite; }
+
+    @media (max-width: 767px) {
+        .page-content { padding: 0 8px; }
+        .resources-page { padding: 8px 0 64px; }
+        .res-hot-card, .res-skeleton-hot-card { width: 300px; }
+        .res-hot-cover { height: 130px; }
+        .res-skeleton-cover { height: 130px; }
+    }
+    </style>
+
+    <div class="resources-page page-content">
+        <!-- Hero -->
+        <div class="res-hero">
+            <div class="res-hero__icon">📦</div>
+            <h1 class="res-hero__title">资源中心</h1>
+            <p class="res-hero__desc">精选工具、插件、教程，一键获取</p>
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="res-filter" id="res-filter"></div>
+
+        <!-- 推荐资源（含骨架屏） -->
+        <section class="res-section" id="res-rec">
+            <text class="res-section-title">推荐资源</text>
+            <div class="res-skeleton-hot">
+                <div class="res-skeleton-hot-card"><div class="res-skeleton-cover"></div><div class="res-skeleton-bottom"><div class="res-skeleton-icon"></div><div class="res-skeleton-lines"><div class="res-skeleton-bar" style="width:70%"></div><div class="res-skeleton-bar" style="width:50%"></div></div></div></div>
+                <div class="res-skeleton-hot-card"><div class="res-skeleton-cover"></div><div class="res-skeleton-bottom"><div class="res-skeleton-icon"></div><div class="res-skeleton-lines"><div class="res-skeleton-bar" style="width:65%"></div><div class="res-skeleton-bar" style="width:45%"></div></div></div></div>
+                <div class="res-skeleton-hot-card"><div class="res-skeleton-cover"></div><div class="res-skeleton-bottom"><div class="res-skeleton-icon"></div><div class="res-skeleton-lines"><div class="res-skeleton-bar" style="width:75%"></div><div class="res-skeleton-bar" style="width:55%"></div></div></div></div>
+            </div>
+        </section>
+
+        <!-- 全部资源（含骨架屏） -->
+        <section class="res-section" id="res-all">
+            <text class="res-section-title">全部资源</text>
+            <div class="res-tool-grid">
+                <div class="res-skeleton-card"><div class="res-skeleton-card-icon"></div><div class="res-skeleton-card-lines"><div class="res-skeleton-card-bar" style="width:60%"></div><div class="res-skeleton-card-bar" style="width:80%"></div></div></div>
+                <div class="res-skeleton-card"><div class="res-skeleton-card-icon"></div><div class="res-skeleton-card-lines"><div class="res-skeleton-card-bar" style="width:55%"></div><div class="res-skeleton-card-bar" style="width:70%"></div></div></div>
+                <div class="res-skeleton-card"><div class="res-skeleton-card-icon"></div><div class="res-skeleton-card-lines"><div class="res-skeleton-card-bar" style="width:65%"></div><div class="res-skeleton-card-bar" style="width:75%"></div></div></div>
+                <div class="res-skeleton-card"><div class="res-skeleton-card-icon"></div><div class="res-skeleton-card-lines"><div class="res-skeleton-card-bar" style="width:50%"></div><div class="res-skeleton-card-bar" style="width:65%"></div></div></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 随机图（与首页一致） -->
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    var _resPhotoUrls = [];
+    (function() {
+        var allPhotos = /*[[${#lists.toList(photoFinder.listAll())}]]*/ [];
+        for (var i = 0; i < allPhotos.length; i++) {
+            var p = allPhotos[i];
+            if (p && p.spec && p.spec.url) _resPhotoUrls.push(p.spec.url);
+        }
+    })();
+    /*]]>*/
+    </script>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    (function() {
+        var resourceCat = /*[[${theme.config.content?.resourceCategory ?: ''}]]*/ '';
+        var recCount = /*[[${theme.config.content?.recommendResourceCount ?: 6}]]*/ 6;
+        var photoUrls = _resPhotoUrls;
+
+        if (!resourceCat) {
+            document.getElementById('res-filter') && document.getElementById('res-filter').remove();
+            document.getElementById('res-rec') && document.getElementById('res-rec').remove();
+            document.getElementById('res-all').innerHTML = '<div class="res-empty"><div class="res-empty-icon">⚙️</div><div class="res-empty-text">请在后台「内容设置」中配置资源分类</div></div>';
+            return;
+        }
+
+        var API = '/apis/api.content.halo.run/v1alpha1/';
+        var CAT_API = '/apis/content.halo.run/v1alpha1/categories';
+        var currentCat = '';
+        var childCatNames = [];
+        var currentPage = 1;
+        var pageSize = 10;
+        var loading = false;
+        var noMore = false;
+
+        function getIcon(p) {
+            var a = p.metadata && p.metadata.annotations || {};
+            return a['theme.aiym.fun/icon-url'] || a['iconUrl'] || '';
+        }
+
+        /* 随机封面（与首页一致） */
+        function sha256Hash(str) {
+            var h = 0;
+            for (var i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; }
+            return Math.abs(h);
+        }
+        function getRandomCover(seed) {
+            if (!photoUrls || photoUrls.length === 0) return '';
+            var cacheKey = 'rescover:' + seed;
+            var cacheTimeKey = cacheKey + ':t';
+            try {
+                var cached = localStorage.getItem(cacheKey);
+                var cachedTime = localStorage.getItem(cacheTimeKey);
+                if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < 7200000) return cached;
+            } catch(e) {}
+            var idx = sha256Hash(seed) % photoUrls.length;
+            var url = photoUrls[idx];
+            try { localStorage.setItem(cacheKey, url); localStorage.setItem(cacheTimeKey, String(Date.now())); } catch(e) {}
+            return url;
+        }
+        function getCover(p) {
+            var cover = (p.spec && p.spec.cover) || '';
+            return cover || getRandomCover(p.metadata.name) || '';
+        }
+
+        function getTagNames(tags) {
+            if (!tags || !tags.length) return [];
+            return tags.slice(0, 2).map(function(t) {
+                if (t.spec && t.spec.displayName) return t.spec.displayName;
+                var name = t.metadata && t.metadata.name || t.name || t || '';
+                return name.replace(/^tag-/, '');
+            });
+        }
+
+        /* ===== 分类筛选 ===== */
+        function renderFilter(cats) {
+            var el = document.getElementById('res-filter');
+            if (!el || !cats.length) { if (el) el.innerHTML = ''; return; }
+            childCatNames = cats.map(function(c) { return c.metadata.name; });
+            var h = '<button type="button" class="res-filter-chip active" data-cat="">全部</button>';
+            cats.forEach(function(c) {
+                h += '<button type="button" class="res-filter-chip" data-cat="'+c.metadata.name+'">'+c.spec.displayName+'</button>';
+            });
+            el.innerHTML = h;
+            el.querySelectorAll('.res-filter-chip').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    el.querySelectorAll('.res-filter-chip').forEach(function(b){ b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    currentCat = btn.getAttribute('data-cat');
+                    currentPage = 1; noMore = false;
+                    loadResources(true);
+                });
+            });
+        }
+
+        /* ===== 推荐资源 ===== */
+        function renderRec(posts) {
+            var el = document.getElementById('res-rec');
+            if (!el) return;
+            if (!posts.length) { el.innerHTML = ''; return; }
+            var h = '<text class="res-section-title">推荐资源</text>';
+            h += '<div class="res-hot-scroll">';
+            posts.forEach(function(p) {
+                var cover = getCover(p);
+                var icon = getIcon(p);
+                var title = p.spec && p.spec.title || '';
+                var excerpt = p.status && p.status.excerpt || '';
+                var href = p.status && p.status.permalink || '#';
+                var visit = p.stats && p.stats.visit || 0;
+                var comment = p.stats && p.stats.comment || 0;
+                var hasImg = !!icon;
+                h += '<div class="res-hot-card"><a href="'+href+'">';
+                h += '<div class="res-hot-cover">';
+                if (cover) h += '<img src="'+cover+'" alt="" loading="lazy" onload="this.classList.add(\'loaded\')">';
+                else h += '<span class="res-hot-cover-letter">'+title.substring(0,1)+'</span>';
+                h += '</div>';
+                h += '<div class="res-hot-bottom">';
+                h += '<div class="res-hot-icon'+(hasImg?' no-bg':'')+'">';
+                if (icon) h += '<img src="'+icon+'" alt="" loading="lazy">';
+                else h += '<span class="res-hot-icon-letter">'+title.substring(0,1)+'</span>';
+                h += '</div>';
+                h += '<div class="res-hot-info">';
+                h += '<span class="res-hot-name">'+title+'</span>';
+                h += '<span class="res-hot-desc">'+(excerpt?excerpt.substring(0,40):'')+'</span>';
+                h += '</div>';
+                h += '<div class="res-hot-right">';
+                h += '<div class="res-hot-stats">';
+                h += '<span class="res-hot-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'+visit+'</span>';
+                h += '<span class="res-hot-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+comment+'</span>';
+                h += '</div>';
+                h += '<span class="res-hot-btn">详情</span>';
+                h += '</div></div></a></div>';
+            });
+            h += '</div>';
+            el.innerHTML = h;
+            /* 渲染后绑定拖拽 */
+            initHotScrollDrag(el.querySelector('.res-hot-scroll'));
+        }
+
+        /* ===== 全部资源 ===== */
+        function renderAll(posts, append) {
+            var el = document.getElementById('res-all');
+            if (!el) return;
+            if (!append) {
+                if (!posts.length) {
+                    el.innerHTML = '<div class="res-empty"><div class="res-empty-icon">📭</div><div class="res-empty-text">暂无资源文章</div></div>';
+                    return;
+                }
+                el.innerHTML = '<text class="res-section-title">全部资源</text><div class="res-tool-grid" id="res-grid"></div><div id="res-load-hint" style="text-align:center;padding:16px;font-size:13px;color:var(--color-text-muted);"></div>';
+            }
+            var grid = document.getElementById('res-grid');
+            if (!grid) return;
+            posts.forEach(function(p) { grid.appendChild(buildToolCard(p)); });
+        }
+        function appendAll(posts) {
+            var grid = document.getElementById('res-grid');
+            if (!grid || !posts.length) return;
+            posts.forEach(function(p) { grid.appendChild(buildToolCard(p)); });
+        }
+        function buildToolCard(p) {
+            var icon = getIcon(p);
+            var title = p.spec && p.spec.title || '';
+            var excerpt = p.status && p.status.excerpt || '';
+            var href = p.status && p.status.permalink || '#';
+            var visit = p.stats && p.stats.visit || 0;
+            var comment = p.stats && p.stats.comment || 0;
+            var tagNames = getTagNames(p.tags || p.spec && p.spec.tags || []);
+            var hasImg = !!icon;
+            var div = document.createElement('div');
+            div.className = 'res-tool-card';
+            var h = '<a href="'+href+'">';
+            h += '<div class="res-tool-icon'+(hasImg?' no-bg':'')+'">';
+            if (icon) h += '<img src="'+icon+'" alt="" loading="lazy">';
+            else h += '<span class="res-tool-icon-letter">'+title.substring(0,1)+'</span>';
+            h += '</div>';
+            h += '<div class="res-tool-info">';
+            h += '<span class="res-tool-name">'+title+'</span>';
+            h += '<span class="res-tool-desc">'+(excerpt?excerpt.substring(0,40):'')+'</span>';
+            h += '</div>';
+            h += '<div class="res-tool-right">';
+            if (tagNames.length) {
+                h += '<div class="res-tool-tags">';
+                tagNames.forEach(function(t){ h += '<span class="res-tool-tag">'+t+'</span>'; });
+                h += '</div>';
+            }
+            h += '<div class="res-tool-stats">';
+            h += '<span class="res-tool-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'+visit+'</span>';
+            h += '<span class="res-tool-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+comment+'</span>';
+            h += '</div>';
+            h += '<span class="res-tool-btn">详情</span>';
+            h += '</div></a>';
+            div.innerHTML = h;
+            return div;
+        }
+        function updateLoadHint() {
+            var hint = document.getElementById('res-load-hint');
+            if (!hint) return;
+            hint.innerHTML = noMore ? '— 到底啦 —' : '';
+        }
+
+        /* ===== 加载资源（分页） ===== */
+        function loadResources(reset) {
+            if (loading || noMore) return;
+            loading = true;
+            var catFilter = currentCat || resourceCat;
+            var url = API+'posts?page='+currentPage+'&size='+pageSize+'&fieldSelector=spec.categories='+catFilter+'&sort=spec.publishTime,desc';
+            fetch(url, {credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    var items = d.items || [];
+                    if (currentCat) {
+                        items = items.filter(function(p) {
+                            var cats = (p.spec && p.spec.categories || []).map(function(c) {
+                                return c.metadata ? c.metadata.name : c;
+                            });
+                            return cats.indexOf(currentCat) !== -1;
+                        });
+                    }
+                    if (reset) {
+                        var rec = items.slice().sort(function(a,b){ return (b.stats&&b.stats.visit||0)-(a.stats&&a.stats.visit||0); }).slice(0, recCount);
+                        renderRec(rec);
+                        renderAll(items, false);
+                    } else {
+                        appendAll(items);
+                    }
+                    if (items.length < pageSize) noMore = true;
+                    currentPage++;
+                    loading = false;
+                    updateLoadHint();
+                })
+                .catch(function(){
+                    loading = false;
+                    if (reset) {
+                        document.getElementById('res-rec') && (document.getElementById('res-rec').innerHTML = '');
+                        document.getElementById('res-all').innerHTML = '<div class="res-empty"><div class="res-empty-icon">❌</div><div class="res-empty-text">加载失败，请刷新重试</div></div>';
+                    }
+                });
+        }
+
+        /* 1. 加载子分类 */
+        fetch(CAT_API+'?size=50', {credentials:'same-origin'})
+            .then(function(r){return r.json()})
+            .then(function(d){
+                var allCats = d.items || [];
+                var resRoot = allCats.find(function(c){ return c.metadata.name === resourceCat; });
+                var childNames = (resRoot && resRoot.spec && resRoot.spec.children) || [];
+                var children = allCats.filter(function(c){ return childNames.indexOf(c.metadata.name) !== -1; });
+                renderFilter(children);
+            })
+            .catch(function(){});
+
+        /* 2. 加载资源文章 */
+        loadResources(true);
+
+        /* 3. 无限滚动 observer */
+        function setupSentinel() {
+            var allEl = document.getElementById('res-all');
+            if (!allEl) return;
+            var old = document.getElementById('res-sentinel');
+            if (old) old.remove();
+            var sentinel = document.createElement('div');
+            sentinel.id = 'res-sentinel';
+            allEl.appendChild(sentinel);
+            new IntersectionObserver(function(entries) {
+                if (entries[0].isIntersecting && !loading && !noMore) loadResources(false);
+            }, { rootMargin: '200px' }).observe(sentinel);
+        }
+        /* 首次加载后也挂 sentinel */
+        var _origRenderAll = renderAll;
+        renderAll = function(posts, append) {
+            _origRenderAll(posts, append);
+            if (!append) setupSentinel();
+        };
+
+        /* ===== 横滑拖拽（与首页 hot-scroll 一致）===== */
+        function initHotScrollDrag(el) {
+            if (!el) return;
+            var mouseDown = false, mouseStartX, mouseScrollLeft, mouseMoved = false, rafId = null, latestX = 0;
+            el.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return;
+                mouseDown = true; mouseMoved = false;
+                mouseStartX = e.pageX; mouseScrollLeft = el.scrollLeft;
+                el.classList.add('is-dragging'); el.style.userSelect = 'none';
+                e.preventDefault();
+            });
+            window.addEventListener('mousemove', function(e) {
+                if (!mouseDown) return;
+                latestX = e.pageX;
+                if (!rafId) {
+                    rafId = requestAnimationFrame(function() {
+                        rafId = null; if (!mouseDown) return;
+                        el.scrollLeft = mouseScrollLeft - (latestX - mouseStartX);
+                        if (Math.abs(latestX - mouseStartX) > 5) mouseMoved = true;
+                    });
+                }
+            });
+            window.addEventListener('mouseup', function() {
+                if (!mouseDown) return;
+                mouseDown = false; el.classList.remove('is-dragging'); el.style.userSelect = '';
+                if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+            });
+            el.addEventListener('click', function(e) {
+                if (mouseMoved) { e.preventDefault(); e.stopPropagation(); mouseMoved = false; }
+            }, true);
+            /* 触摸 */
+            var touchStartX = 0, touchStartY = 0, touchDragging = false;
+            el.addEventListener('touchstart', function(e) {
+                var t = e.touches[0]; touchStartX = t.clientX; touchStartY = t.clientY; touchDragging = false;
+            }, { passive: true });
+            el.addEventListener('touchmove', function(e) {
+                var t = e.touches[0]; var dx = Math.abs(t.clientX - touchStartX); var dy = Math.abs(t.clientY - touchStartY);
+                if (dx > 8 && dx > dy) touchDragging = true;
+            }, { passive: true });
+            el.addEventListener('touchend', function() {
+                if (touchDragging) {
+                    el.addEventListener('click', function(ev) { ev.preventDefault(); ev.stopPropagation(); }, { capture: true, once: true });
+                }
+            });
+            /* 滚轮 */
+            el.addEventListener('wheel', function(e) {
+                var delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (!delta) return;
+                var maxScroll = el.scrollWidth - el.clientWidth;
+                if (maxScroll <= 0) return;
+                el.scrollLeft = Math.max(0, Math.min(maxScroll, el.scrollLeft + delta));
+                e.preventDefault();
+            }, { passive: false });
+        }
+    })();
+    /*]]>*/
+    </script>
+
+        <!-- 返回顶部按钮 -->
+        <button class="back-to-top" data-back-to-top aria-label="返回顶部">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+</th:block>
+</html>

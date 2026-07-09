@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <div class="search-page">
+        <!-- 搜索框 -->
+        <div class="search-bar">
+            <form class="search-form" data-search-form>
+                <div class="search-input-wrap">
+                    <div class="search-input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                    <input type="search"
+                           name="q"
+                           class="search-input"
+                           placeholder="搜索文章..."
+                           data-search-input
+                           autocomplete="off">
+                    <button type="button" class="search-clear" data-search-clear hidden>✕</button>
+                    <button type="submit" class="search-submit">搜索</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 搜索中 -->
+        <div class="search-loading" data-search-loading hidden>
+            <div class="search-spinner"></div>
+            <span class="search-loading__text">搜索中...</span>
+        </div>
+
+        <!-- 搜索结果 -->
+        <div class="search-results" data-search-results>
+            <!-- 结果头部 -->
+            <div class="search-results__header" data-search-results-header hidden>
+                <span class="search-results__count" data-search-count>找到 0 篇相关文章</span>
+            </div>
+
+            <!-- 结果列表 -->
+            <div class="search-results__list" data-search-list>
+                <!-- 由 JS 动态渲染 -->
+            </div>
+
+            <!-- 无结果 -->
+            <div class="search-empty" data-search-empty hidden>
+                <div class="search-empty__icon">
+                    <span>&lt;/&gt;</span>
+                </div>
+                <h3 class="search-empty__title">没有找到相关文章</h3>
+                <p class="search-empty__subtitle">换个关键词试试</p>
+            </div>
+
+            <!-- 搜索失败 -->
+            <div class="search-error" data-search-error hidden>
+                <div class="search-error__icon">⚠️</div>
+                <h3 class="search-error__title">搜索失败</h3>
+                <p class="search-error__subtitle">网络异常，请稍后重试</p>
+                <button class="search-error__retry" data-search-retry>重试</button>
+            </div>
+        </div>
+
+        <!-- 热门搜索（未搜索时显示） -->
+        <div class="search-hot" data-search-hot>
+            <h3 class="section-title">热门搜索</h3>
+            <div class="search-hot__tags">
+                <button class="search-hot__tag" data-search-hot-tag th:value="'NAS'">NAS</button>
+                <button class="search-hot__tag" data-search-hot-tag th:value="'Docker'">Docker</button>
+                <button class="search-hot__tag" data-search-hot-tag th:value="'fnOS'">fnOS</button>
+                <button class="search-hot__tag" data-search-hot-tag th:value="'Linux'">Linux</button>
+                <button class="search-hot__tag" data-search-hot-tag th:value="'Git'">Git</button>
+                <button class="search-hot__tag" data-search-hot-tag th:value="'Java'">Java</button>
+                <button class="search-hot__tag" data-search-hot-tag th:value="'AI'">AI</button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+</html>

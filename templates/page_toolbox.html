@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <style>
+    /* ===== 工具箱 Toolbox ===== */
+    .tb { max-width: 1100px; margin: 0 auto; padding: 28px 0 72px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Header */
+    .tb-head { text-align: center; padding: 20px 0 18px; animation: tbUp .45s ease-out both; }
+    .tb-title { font-size: 24px; font-weight: 700; color: var(--color-text-primary); margin: 0 0 6px; }
+    [data-theme="dark"] .tb-title { color: #f0ece6; }
+    .tb-desc { font-size: 13px; color: var(--color-text-muted); margin: 0; letter-spacing: 1px; }
+
+    /* Toolbar: search + cats */
+    .tb-toolbar { animation: tbUp .45s ease-out .06s both; margin-bottom: 18px; }
+    .tb-search { position: relative; margin-bottom: 12px; }
+    .tb-search input {
+        width: 100%; padding: 11px 40px 11px 16px; font-size: 14px;
+        background: var(--color-bg-secondary); border: 1.5px solid var(--color-border-primary);
+        border-radius: var(--radius-md); color: var(--color-text-primary);
+        outline: none; transition: border-color .2s, box-shadow .2s;
+        box-sizing: border-box; font-family: inherit;
+    }
+    .tb-search input::placeholder { color: var(--color-text-muted); }
+    .tb-search input:focus { border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--color-brand-glow); }
+    .tb-search__icon {
+        position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+        color: var(--color-text-muted); pointer-events: none; font-size: 16px;
+    }
+
+    .tb-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tb-cat {
+        padding: 8px 18px; font-size: 14px; font-weight: 500;
+        background: var(--color-bg-secondary); color: var(--color-text-secondary);
+        border: 1px solid var(--color-border-primary); border-radius: 10px;
+        cursor: pointer; transition: all .2s; font-family: inherit; white-space: nowrap;
+    }
+    .tb-cat:hover { border-color: var(--color-brand); color: var(--color-brand); }
+    .tb-cat.active {
+        background: var(--color-brand); color: #fff; border-color: var(--color-brand);
+        box-shadow: 0 2px 8px var(--color-brand-glow);
+    }
+
+    /* Grid */
+    .tb-grid {
+        display: grid; gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 600px; margin: 0 auto;
+    }
+    @media (min-width: 768px) { .tb-grid { grid-template-columns: repeat(3, 1fr); max-width: 780px; } }
+    @media (min-width: 1024px) { .tb-grid { grid-template-columns: repeat(4, 1fr); max-width: 960px; } }
+    @media (min-width: 1280px) { .tb-grid { grid-template-columns: repeat(5, 1fr); max-width: 1100px; } }
+
+    /* Card */
+    .tb-card {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px; background: var(--color-bg-secondary);
+        border: 1px solid var(--color-border-primary); border-radius: 12px;
+        cursor: pointer; text-decoration: none; color: inherit;
+        transition: transform .2s, box-shadow .2s, border-color .2s;
+        animation: tbUp .4s ease-out both;
+        overflow: hidden; min-width: 0;
+    }
+    .tb-card:hover {
+        transform: translateY(-2px); border-color: var(--color-brand);
+        box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    }
+    .tb-card:active { transform: scale(.97); }
+    [data-theme="dark"] .tb-card { background: #1e1e1e; border-color: #2a2a2a; }
+    [data-theme="dark"] .tb-card:hover { border-color: var(--color-brand); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+
+    .tb-icon {
+        width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: transform .25s;
+    }
+    .tb-card:hover .tb-icon { transform: scale(1.05); }
+
+    .tb-info { flex: 1; min-width: 0; overflow: hidden; }
+    .tb-name {
+        font-size: 14px; font-weight: 600; color: var(--color-text-primary);
+        display: flex; align-items: center; gap: 6px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    [data-theme="dark"] .tb-name { color: #f0ece6; }
+    .tb-desc {
+        font-size: 12px; color: var(--color-text-muted);
+        margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* Badge */
+    .tb-badge {
+        font-size: 10px; font-weight: 600; padding: 1px 6px;
+        background: var(--color-brand-light); color: var(--color-brand);
+        border-radius: 10px; flex-shrink: 0; line-height: 1.4;
+    }
+
+    /* Count */
+    .tb-count {
+        font-size: 12px; color: var(--color-text-muted); margin-top: 16px; text-align: center;
+        animation: tbUp .4s ease-out .2s both;
+    }
+
+    /* Empty */
+    .tb-empty { text-align: center; padding: 48px 0; animation: tbUp .4s ease-out both; }
+    .tb-empty__icon { font-size: 40px; margin-bottom: 10px; opacity: .6; }
+    .tb-empty__text { font-size: 14px; color: var(--color-text-muted); }
+
+    @keyframes tbUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width: 767px) {
+        .tb { padding: 12px 0 80px; }
+        .tb-head { padding: 12px 0 10px; }
+        .tb-title { font-size: 18px; }
+        .tb-desc { font-size: 11px; }
+        .tb-toolbar { margin-bottom: 10px; }
+        .tb-search { margin-bottom: 8px; }
+        .tb-search input { padding: 10px 36px 10px 12px; font-size: 13px; }
+        .tb-cats { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .tb-cats::-webkit-scrollbar { display: none; }
+        .tb-cat { padding: 6px 14px; font-size: 13px; flex-shrink: 0; }
+        .tb-grid { gap: 8px; padding: 0; max-width: 100%; }
+        .tb-card { padding: 10px; gap: 8px; border-radius: 10px; }
+        .tb-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+        .tb-card:active { transform: scale(.97); }
+        .tb-icon { width: 36px; height: 36px; border-radius: 8px; }
+        .tb-icon span { font-size: 18px !important; }
+        .tb-name { font-size: 14px; }
+        .tb-desc { font-size: 12px; margin-top: 2px; }
+        .tb-badge { font-size: 9px; padding: 1px 4px; }
+        .tb-count { font-size: 11px; margin-top: 10px; }
+    }
+    </style>
+
+    <div class="tb page-content">
+        <div class="tb-head">
+            <h1 class="tb-title">🧰 工具箱</h1>
+            <p class="tb-desc">开发利器，随用随走</p>
+        </div>
+
+        <div class="tb-toolbar">
+            <div class="tb-search">
+                <input type="text" id="tb-search" placeholder="搜索工具..." autocomplete="off">
+                <span class="tb-search__icon iconify" data-icon="ri-search-line"></span>
+            </div>
+            <div class="tb-cats" id="tb-cats"></div>
+        </div>
+
+        <div class="tb-grid" id="tb-grid"></div>
+        <div class="tb-count" id="tb-count"></div>
+        <div class="tb-empty" id="tb-empty" style="display:none">
+            <div class="tb-empty__icon">🔍</div>
+            <div class="tb-empty__text">没有找到匹配的工具</div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    (function() {
+        var raw = /*[[${theme.config.toolbox}]]*/ null;
+        if (!raw) return;
+        var cfg = raw.realNode || raw;
+
+        var categories = cfg.toolboxCategories || [];
+        var items = cfg.toolboxItems || [];
+        var brandColor = cfg.toolboxBrandColor || '#9b7ed8';
+
+        /* 注入品牌色 CSS 变量 */
+        var root = document.documentElement;
+        root.style.setProperty('--tb-brand', brandColor);
+
+        if (!items.length) return;
+
+        /* 自动发现分类：settings 配置 + 工具中引用的分类 */
+        var catSet = new Set();
+        categories.forEach(function(c) { if (c) catSet.add(c); });
+        items.forEach(function(item) { if (item.cat) catSet.add(item.cat); });
+        var allCats = Array.from(catSet);
+
+        /* 状态 */
+        var currentCat = 'all';
+        var searchVal = '';
+        var catsEl = document.getElementById('tb-cats');
+        var gridEl = document.getElementById('tb-grid');
+        var countEl = document.getElementById('tb-count');
+        var emptyEl = document.getElementById('tb-empty');
+
+        /* 渲染分类标签 */
+        function renderCats() {
+            var h = '<button class="tb-cat active" data-cat="all">全部</button>';
+            allCats.forEach(function(cat) {
+                h += '<button class="tb-cat" data-cat="' + esc(cat) + '">' + esc(cat) + '</button>';
+            });
+            catsEl.innerHTML = h;
+            catsEl.querySelectorAll('.tb-cat').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    currentCat = this.getAttribute('data-cat');
+                    catsEl.querySelectorAll('.tb-cat').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    renderGrid();
+                });
+            });
+        }
+
+        /* 渲染工具卡片 */
+        function renderGrid() {
+            var kw = searchVal.toLowerCase();
+            var filtered = items.filter(function(item) {
+                if (currentCat !== 'all' && item.cat !== currentCat) return false;
+                if (kw) {
+                    return (item.name || '').toLowerCase().indexOf(kw) !== -1
+                        || (item.desc || '').toLowerCase().indexOf(kw) !== -1;
+                }
+                return true;
+            });
+
+            if (!filtered.length) {
+                gridEl.innerHTML = '';
+                countEl.textContent = '';
+                emptyEl.style.display = '';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            countEl.textContent = '共 ' + filtered.length + ' 个工具';
+
+            var h = '';
+            filtered.forEach(function(item, i) {
+                var isExternal = (item.path || '').indexOf('http') === 0;
+                var tag = isExternal ? ' target="_blank" rel="noopener"' : '';
+                var bg = item.bg || (brandColor + '18');
+                var color = item.color || brandColor;
+                var badge = item.badge ? '<span class="tb-badge">' + esc(item.badge) + '</span>' : '';
+
+                h += '<a class="tb-card" href="' + esc(item.path || '#') + '"' + tag
+                   + ' style="animation-delay:' + (i * 40) + 'ms">';
+                h += '<div class="tb-icon" style="background:' + esc(bg) + '">';
+                h += '<span class="iconify" data-icon="' + esc(item.icon || '') + '" style="color:' + esc(color) + ';font-size:22px"></span>';
+                h += '</div>';
+                h += '<div class="tb-info">';
+                h += '<div class="tb-name">' + esc(item.name || '') + badge + '</div>';
+                h += '<div class="tb-desc">' + esc(item.desc || '') + '</div>';
+                h += '</div></a>';
+            });
+            gridEl.innerHTML = h;
+
+            /* 重新触发 Iconify 渲染 */
+            if (window.Iconify && window.Iconify.renderDOM) {
+                window.Iconify.renderDOM(gridEl);
+            }
+        }
+
+        /* 搜索 */
+        var timer = null;
+        document.getElementById('tb-search').addEventListener('input', function() {
+            clearTimeout(timer);
+            var self = this;
+            timer = setTimeout(function() {
+                searchVal = self.value.trim();
+                renderGrid();
+            }, 150);
+        });
+
+        renderCats();
+        renderGrid();
+
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    })();
+    /*]]>*/
+    </script>
+
+        <!-- 返回顶部按钮 -->
+        <button class="back-to-top" data-back-to-top aria-label="返回顶部">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+</th:block>
+
+</html>

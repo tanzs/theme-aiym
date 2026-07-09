@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <div class="tags-page">
+        <header class="tags-header">
+            <h1 class="tags-title">文章标签</h1>
+        </header>
+
+        <div class="tags-cloud">
+            <a th:each="tag : ${tags}"
+               th:href="@{${tag.status?.permalink}}"
+               class="tag-cloud-item"
+               th:text="'#' + ${tag.spec.displayName}">
+            </a>
+        </div>
+    </div>
+</th:block>
+
+</html>

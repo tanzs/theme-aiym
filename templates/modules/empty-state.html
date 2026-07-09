@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 空状态 -->
+<div th:fragment="empty-state(title, subtitle)" class="empty-state">
+    <div class="empty-state__icon-wrap">
+        <span class="empty-state__icon">&lt;/&gt;</span>
+    </div>
+    <h3 class="empty-state__title" th:text="${title}">暂无数据</h3>
+    <p class="empty-state__subtitle" th:text="${subtitle}">稍后再来看看吧</p>
+</div>
+
+<!-- 配置缺失提示（仅管理员可见） -->
+<div th:fragment="config-hint(message)" class="config-hint" th:if="${#authentication?.name != 'anonymousUser'}">
+    <div class="config-hint__icon">⚙️</div>
+    <p class="config-hint__text" th:text="${message}">请在后台主题设置中配置此项</p>
+</div>
+
+</html>

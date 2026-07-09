@@ -1,0 +1,65 @@
+<style>
+.json-tool{max-width:1100px;margin:0 auto;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.json-panel{background:var(--color-bg-secondary);border-radius:14px;border:1px solid var(--color-border-primary);overflow:hidden;padding:16px}
+.json-tool-btn{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--color-text-secondary);font-weight:500;background:none;border:none;font-family:inherit}
+.json-tool-btn:hover{background:rgba(var(--color-brand-rgb,155,126,216),.08)}
+.json-tool-btn.active{background:var(--color-brand);color:#fff}
+.json-tool-btn .icon{font-size:16px}
+.cron-presets{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.cron-result{background:var(--color-bg-tertiary);border:1px solid var(--color-border-primary);border-radius:10px;padding:12px;font-size:13px;line-height:2;color:var(--color-text-primary)}
+.cron-next{list-style:none;padding:0;margin:0}
+.cron-next li{padding:6px 0;border-bottom:1px solid var(--color-border-secondary);font-size:13px}
+.cron-next li:last-child{border-bottom:none}
+</style>
+
+<div class="json-tool">
+  <div class="json-panel">
+    <div style="margin-bottom:16px">
+      <label style="font-size:13px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:6px">Cron 表达式</label>
+      <input class="json-input" id="cronInput" value="0 9 * * 1-5" placeholder="分 时 日 月 周" style="min-height:auto" oninput="parseCron()" />
+    </div>
+    <div class="cron-presets">
+      <button class="json-tool-btn" onclick="setCron('0 9 * * *')">每天9点</button>
+      <button class="json-tool-btn" onclick="setCron('0 * * * *')">每小时</button>
+      <button class="json-tool-btn" onclick="setCron('0 9 * * 1-5')">工作日9点</button>
+      <button class="json-tool-btn" onclick="setCron('0 0 1 * *')">每月1号</button>
+      <button class="json-tool-btn" onclick="setCron('0 9 * * 1')">每周一</button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:13px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:6px">说明</label>
+      <div class="cron-result" id="cronDesc"></div>
+    </div>
+    <div>
+      <label style="font-size:13px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:6px">接下来 5 次执行时间</label>
+      <ul class="cron-next" id="cronNext"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+function setCron(v){document.getElementById('cronInput').value=v;parseCron()}
+function parseCron(){
+  var parts=document.getElementById('cronInput').value.trim().split(/\s+/);
+  if(parts.length!==5){document.getElementById('cronDesc').textContent='需要 5 个字段：分 时 日 月 周';return}
+  var names=['分','时','日','月','周'];
+  document.getElementById('cronDesc').textContent=parts.map(function(p,i){return names[i]+': '+p}).join('    ');
+  var now=new Date();var runs=[];var scan=new Date(now);scan.setSeconds(0);scan.setMilliseconds(0);
+  for(var i=0;i<525960&&runs.length<5;i++){scan.setMinutes(scan.getMinutes()+1);if(matchCron(parts,scan))runs.push(new Date(scan))}
+  document.getElementById('cronNext').innerHTML=runs.map(function(d){
+    return'<li>'+d.toLocaleString('zh-CN',{month:'long',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'})+'</li>';
+  }).join('');
+}
+function matchCron(parts,d){return matchF(parts[0],d.getMinutes(),0,59)&&matchF(parts[1],d.getHours(),0,23)&&matchF(parts[2],d.getDate(),1,31)&&matchF(parts[3],d.getMonth()+1,1,12)&&matchF(parts[4],d.getDay(),0,6)}
+function matchF(field,val,min,max){
+  if(field==='*')return true;
+  var parts=field.split(',');
+  for(var i=0;i<parts.length;i++){
+    var p=parts[i];
+    if(p.includes('-')){var r=p.split('-');if(val>=parseInt(r[0],10)&&val<=parseInt(r[1],10))return true}
+    else if(p.includes('/')){if(val%parseInt(p.split('/')[1],10)===0)return true}
+    else{if(parseInt(p,10)===val)return true}
+  }
+  return false;
+}
+parseCron();
+</script>

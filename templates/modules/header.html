@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- 桌面端导航 -->
+<header th:fragment="header" class="site-header hide-mobile" data-header>
+    <div class="header-inner">
+        <!-- 左：Logo + 站名 -->
+        <a href="/" class="header-logo" th:title="${site.title}">
+            <div class="header-logo__icon">
+                <img th:if="${site.logo}" th:src="${site.logo}" th:alt="${site.title}" loading="lazy">
+                <span th:unless="${site.logo}" class="header-logo__icon-text" th:text="${#strings.substring(site.title, 0, 1)}">A</span>
+            </div>
+            <div class="header-logo__text">
+                <span class="header-logo__title" th:text="${site.title}">AIYM</span>
+                <span class="header-logo__sub" th:text="${site.subtitle ?: '创意 · 技术 · 分享'}">创意 · 技术 · 分享</span>
+            </div>
+        </a>
+
+        <!-- 中：导航菜单（pill 样式） -->
+        <nav class="header-tabbar" aria-label="主导航">
+            <div class="tabbar-track">
+                <th:block th:with="menu = ${theme.config.basic?.mainMenu != null and theme.config.basic.mainMenu != '' ? menuFinder.getByName(theme.config.basic.mainMenu) : menuFinder.getPrimary()}">
+                    <th:block th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}">
+                        <a th:each="item : ${menu.menuItems}"
+                           th:href="@{${item.status.href}}"
+                           th:target="${item.spec.target?.value}"
+                           th:classappend="${#annotations.contains(item, 'animation') ? 'animated-hover' : ''}"
+                           class="tabbar-item"
+                           data-nav-link
+                           th:attr="data-href=${item.status.href}">
+                            <span th:if="${#annotations.contains(item, 'icon') and #annotations.get(item, 'icon') != ''}"
+                                  class="iconify"
+                                  th:attr="data-icon=${#annotations.get(item, 'icon')}"
+                                  style="vertical-align:-0.15em;"></span>
+                            <span th:text="${item.status.displayName}">菜单</span>
+                        </a>
+                    </th:block>
+                    <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
+                        <a href="/" class="tabbar-item" data-nav-link>首页</a>
+                        <a href="/archives" class="tabbar-item" data-nav-link>归档</a>
+                        <a href="/categories" class="tabbar-item" data-nav-link>分类</a>
+                        <a href="/tags" class="tabbar-item" data-nav-link>标签</a>
+                    </th:block>
+                </th:block>
+            </div>
+        </nav>
+
+        <!-- 右：搜索 + 用户 -->
+        <div class="header-right">
+            <button class="header-action-btn" data-search-open aria-label="搜索">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            <button th:if="${theme.config.appearance?.showThemeToggle != false}"
+                    class="theme-toggle header-action-btn"
+                    data-theme-toggle
+                    aria-label="切换主题模式">
+                <span class="theme-icon">
+                    <svg class="theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg class="theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </span>
+            </button>
+
+            <!-- 欢迎语 -->
+            <div class="header-greeting">
+                <span class="header-greeting__text">欢迎回来 ✨</span>
+            </div>
+
+            <!-- 用户区域 -->
+            <div class="header-user"
+                 th:with="currentUser = ${#authentication?.name != 'anonymousUser' ? contributorFinder.getContributor(#authentication.name) : null}">
+                <!-- 已登录 -->
+                <th:block th:if="${#authentication?.name != 'anonymousUser'}">
+                    <div class="header-user__trigger">
+                        <div class="header-user__avatar">
+                            <img th:if="${currentUser?.avatar}" th:src="${currentUser.avatar}" th:alt="${#authentication.name}" loading="lazy">
+                            <svg th:unless="${currentUser?.avatar}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="header-user__text">
+                            <span class="header-user__name" th:text="${currentUser?.displayName ?: #authentication.name}">用户</span>
+                            <span class="header-user__sub" th:text="${site.subtitle ?: '创意 · 技术 · 分享'}">创意 · 技术 · 分享</span>
+                        </div>
+                    </div>
+                    <!-- 悬浮菜单 -->
+                    <div class="header-user__menu">
+                        <div class="header-user__menu-header">
+                            <div class="header-user__menu-avatar">
+                                <img th:if="${currentUser?.avatar}" th:src="${currentUser.avatar}" alt="avatar">
+                                <svg th:unless="${currentUser?.avatar}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div class="header-user__menu-info">
+                                <span class="header-user__menu-name" th:text="${currentUser?.displayName ?: #authentication.name}">用户</span>
+                                <span class="header-user__menu-sub" th:text="${currentUser?.bio ?: site.subtitle}">签名</span>
+                            </div>
+                        </div>
+                        <div class="header-user__menu-divider"></div>
+                        <div class="header-user__menu-options">
+                            <a th:if="${#authentication?.name != 'admin'}" href="/uc/" class="header-user__menu-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                个人中心
+                            </a>
+                            <a th:if="${#authentication?.name == 'admin'}" href="/console/" class="header-user__menu-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                                控制台
+                            </a>
+                            <a href="/logout" class="header-user__menu-item header-user__menu-item--danger" target="_top">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                退出登录
+                            </a>
+                        </div>
+                    </div>
+                </th:block>
+
+                <!-- 未登录 -->
+                <th:block th:unless="${#authentication?.name != 'anonymousUser'}">
+                    <a href="/login/" class="header-user__trigger header-user__trigger--guest">
+                        <div class="header-user__avatar header-user__avatar--guest">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="header-user__text">
+                            <span class="header-user__name">登录</span>
+                            <span class="header-user__sub">点击登录</span>
+                        </div>
+                    </a>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 移动端顶部栏 -->
+<header th:fragment="mobile-header" class="mobile-header hide-desktop"
+        th:with="currentUser = ${#authentication?.name != 'anonymousUser' ? contributorFinder.getContributor(#authentication.name) : null}">
+    <div class="mobile-header__left">
+        <a href="/" class="mobile-header__logo" th:title="${site.title}">
+            <div class="mobile-header__logo-icon">
+                <img th:if="${site.logo}" th:src="${site.logo}" th:alt="${site.title}" loading="lazy">
+                <span th:unless="${site.logo}" class="mobile-header__icon-text" th:text="${#strings.substring(site.title, 0, 1)}">A</span>
+            </div>
+            <div class="mobile-header__logo-text">
+                <span class="mobile-header__title" th:text="${site.title}">AIYM</span>
+                <span class="mobile-header__sub" th:text="${site.subtitle ?: '创意 · 技术 · 分享'}">创意 · 技术 · 分享</span>
+            </div>
+        </a>
+    </div>
+    <div class="mobile-header__right">
+        <button class="mobile-header__action" data-search-open aria-label="搜索">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </button>
+        <!-- 主题切换 -->
+        <button class="mobile-header__action" data-theme-toggle aria-label="切换主题">
+            <svg class="theme-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <!-- 用户头像 -->
+        <th:block th:if="${#authentication?.name != 'anonymousUser'}">
+            <div class="mobile-header__user" style="position:relative;">
+                <a th:href="${#authentication?.name == 'admin' ? '/console/' : '/uc/'}" class="mobile-header__avatar-link" style="display:flex;align-items:center;">
+                    <img th:if="${currentUser?.avatar}" th:src="${currentUser?.avatar}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                    <span th:unless="${currentUser?.avatar}" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#42A5F5,#1E88E5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;" th:text="${#strings.substring(currentUser?.displayName ?: #authentication.name, 0, 1)}">A</span>
+                </a>
+            </div>
+        </th:block>
+        <a th:unless="${#authentication?.name != 'anonymousUser'}" href="/login/" class="mobile-header__action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </a>
+    </div>
+</header>
+
+</html>

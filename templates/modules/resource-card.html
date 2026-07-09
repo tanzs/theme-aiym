@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 资源卡片 - 横向列表风格 -->
+<div th:fragment="resource-card(post)" class="resource-card">
+    <a th:href="@{${post.status?.permalink}}" class="resource-card__link">
+        <div class="resource-card__icon"
+             th:with="iconUrl = ${#annotations.get(post, 'theme.aiym.fun/icon-url') ?: #annotations.get(post, 'iconUrl')}">
+            <img th:if="${iconUrl}" th:src="${iconUrl}" alt="" class="resource-card__icon-img">
+            <span th:unless="${iconUrl}" class="resource-card__icon-text"
+                  th:text="${#strings.substring(post.spec.title, 0, 1)}">A</span>
+        </div>
+        <div class="resource-card__info">
+            <h3 class="resource-card__title" th:text="${post.spec.title}">资源名称</h3>
+            <p class="resource-card__description" th:if="${post.status?.excerpt}"
+               th:text="${#strings.abbreviate(#strings.escapeXml(post.status.excerpt), 30)}">资源描述</p>
+        </div>
+        <div class="resource-card__right">
+            <div class="resource-card__tags" th:if="${not #lists.isEmpty(post.tags)}">
+                <span th:each="tag : ${post.tags}" th:if="${tagStat.index < 2}"
+                      class="resource-card__tag"
+                      th:text="${tag.spec.displayName}">标签</span>
+            </div>
+            <div class="resource-card__stats">
+                <span class="resource-card__stat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span th:text="${post.stats?.visit ?: 0}">0</span>
+                </span>
+            </div>
+            <span class="resource-card__btn">详情</span>
+        </div>
+    </a>
+</div>
+
+</html>

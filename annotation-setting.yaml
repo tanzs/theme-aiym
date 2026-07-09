@@ -1,0 +1,25 @@
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: theme-aiym-resource-post
+spec:
+  targetRef:
+    group: content.halo.run
+    kind: Post
+  formSchema:
+    - $formkit: text
+      name: theme.aiym.fun/download-url
+      label: 下载地址
+      help: 资源的下载链接（规范化键）
+    - $formkit: text
+      name: theme.aiym.fun/icon-url
+      label: 图标地址
+      help: 资源图标图片 URL（规范化键）
+    - $formkit: text
+      name: theme.aiym.fun/version
+      label: 版本号
+      help: 如 1.0.0（规范化键）
+    - $formkit: text
+      name: theme.aiym.fun/platform
+      label: 支持平台
+      help: 逗号分隔，如 Windows, macOS, Linux（规范化键）

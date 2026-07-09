@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title th:text="${post?.spec?.title ?: category?.spec?.displayName ?: tag?.spec?.displayName ?: page?.spec?.title ?: site.title}">AIYM Halo 主题</title>
+    <meta name="description"
+          th:content="${post?.spec?.excerpt ?: category?.spec?.description ?: theme.config.seo?.siteDescription}"
+          content="一个现代化的 Halo 博客主题">
+    <meta name="keywords" th:content="${post?.metadata?.annotations?.keywords ?: theme.config.seo?.keywords}" content="">
+    <meta name="author" th:content="${site.title}" content="AIYM">
+    <meta name="generator" content="Halo">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title"
+          th:content="${post?.spec?.title ?: category?.spec?.displayName ?: tag?.spec?.displayName ?: page?.spec?.title ?: site.title}"
+          content="AIYM Halo 主题">
+    <meta property="og:description"
+          th:content="${post?.spec?.excerpt ?: category?.spec?.description ?: theme.config.seo?.siteDescription}"
+          content="一个现代化的 Halo 博客主题">
+    <meta property="og:url" th:content="${post?.status?.permalink ?: page?.status?.permalink ?: ''}" content="">
+    <meta property="og:site_name" th:content="${site.title}" content="AIYM">
+    <meta property="og:image"
+          th:content="${post?.spec?.cover ?: theme.config.seo?.ogImage ?: theme.config.basic?.defaultCover}"
+          content="">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title"
+          th:content="${post?.spec?.title ?: category?.spec?.displayName ?: tag?.spec?.displayName ?: page?.spec?.title ?: site.title}"
+          content="AIYM Halo 主题">
+    <meta name="twitter:description"
+          th:content="${post?.spec?.excerpt ?: category?.spec?.description ?: theme.config.seo?.siteDescription}"
+          content="一个现代化的 Halo 博客主题">
+    <meta name="twitter:image"
+          th:content="${post?.spec?.cover ?: theme.config.seo?.ogImage ?: theme.config.basic?.defaultCover}"
+          content="">
+
+    <meta name="theme-color"
+          th:content="${theme.config.appearance?.brandColor ?: '#42A5F5'}"
+          content="#42A5F5">
+
+    <link rel="icon" th:href="@{/favicon.ico}" type="image/x-icon">
+    <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
+
+    <link rel="alternate" type="application/rss+xml" th:title="${site.title}" th:href="@{/feed.xml}">
+
+    <!-- style.css 由 layout.html 统一加载，此处不再重复 -->
+</head>
+
+</html>

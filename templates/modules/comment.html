@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="comment-post" class="comment-section" th:if="${haloCommentEnabled}">
+    <halo:comment group="content.halo.run" kind="Post" th:attr="name=${post.metadata.name}" />
+</div>
+
+<div th:fragment="comment-page" class="comment-section" th:if="${haloCommentEnabled}">
+    <halo:comment group="content.halo.run" kind="SinglePage" th:attr="name=${singlePage.metadata.name}" />
+</div>
+
+</html>

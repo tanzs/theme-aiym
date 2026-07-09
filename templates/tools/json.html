@@ -1,0 +1,240 @@
+<style>
+/* 对齐 miniapp JSON 工具样式 */
+.json-tool{max-width:1100px;margin:0 auto;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.json-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;background:var(--color-bg-secondary);border-radius:12px;padding:8px 12px;border:1px solid var(--color-border-primary)}
+.json-toolbar-left,.json-toolbar-right{display:flex;gap:4px;flex-wrap:wrap}
+.json-tool-btn{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--color-text-secondary);font-weight:500;background:none;border:none;font-family:inherit}
+.json-tool-btn:hover{background:rgba(var(--color-brand-rgb,155,126,216),.08)}
+.json-tool-btn.active{background:var(--color-brand);color:#fff}
+.json-tool-btn .icon{font-size:16px}
+.json-panels{display:flex;flex-direction:column;gap:12px}
+@media(min-width:768px){.json-panels{flex-direction:row}.json-panel{flex:1;min-width:0}}
+.json-panel{background:var(--color-bg-secondary);border-radius:14px;border:1px solid var(--color-border-primary);overflow:hidden;display:flex;flex-direction:column}
+.json-panel-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--color-border-primary)}
+.json-panel-title{font-size:13px;font-weight:600;color:var(--color-text-secondary)}
+.json-panel-actions{display:flex;gap:12px}
+.json-panel-action{font-size:13px;color:var(--color-brand);cursor:pointer;background:none;border:none;font-family:inherit}
+.json-panel-action:hover{opacity:.8}
+.json-panel-footer{padding:8px 16px;border-top:1px solid var(--color-border-primary)}
+.json-stats{font-size:12px;color:var(--color-text-muted)}
+.json-input{padding:12px 16px;font-size:14px;font-family:'SF Mono','Menlo','JetBrains Mono',monospace;color:var(--color-text-primary);background:transparent;border:none;width:100%;box-sizing:border-box;resize:none;outline:none;min-height:300px;line-height:1.6}
+.json-output{padding:12px 16px;font-size:13px;font-family:'SF Mono','Menlo','JetBrains Mono',monospace;color:var(--color-text-primary);word-break:break-all;white-space:pre-wrap;line-height:1.6;min-height:300px;overflow:auto}
+.json-error{display:flex;align-items:flex-start;gap:8px;padding:12px 16px;background:rgba(232,93,58,.06);margin:12px;border-radius:10px}
+.json-error-icon{font-size:18px;color:#e85d3a;flex-shrink:0;margin-top:1px}
+.json-error-text{font-size:13px;color:#e85d3a;line-height:1.6}
+.json-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--color-text-muted)}
+.json-empty-icon{font-size:40px;margin-bottom:12px;opacity:.6}
+.json-empty-text{font-size:14px}
+/* 树形视图 */
+.json-tree{padding:12px 8px;font-size:13px;line-height:1.8}
+.json-tree-node{display:block}
+.json-tree-leaf{display:flex;align-items:baseline;padding:1px 0}
+.json-tree-header{display:flex;align-items:baseline;padding:1px 0;cursor:pointer;border-radius:4px}
+.json-tree-header:hover{background:rgba(var(--color-brand-rgb,155,126,216),.06)}
+.json-tree-toggle{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;font-size:10px;color:var(--color-text-muted);cursor:pointer;margin-right:4px;border-radius:4px;flex-shrink:0;transition:background .15s}
+.json-tree-toggle:hover{background:rgba(var(--color-brand-rgb,155,126,216),.18);color:var(--color-brand)}
+.json-tree-key{color:var(--color-brand);font-weight:500}
+.json-tree-colon{color:var(--color-text-muted)}
+.json-tree-str{color:#2d7d4f}
+.json-tree-num{color:#c26b2a}
+.json-tree-bool{color:#c26b2a;font-weight:600}
+.json-tree-null{color:var(--color-text-muted);font-style:italic}
+.json-tree-bracket{color:var(--color-text-secondary);font-weight:600}
+.json-tree-summary{color:var(--color-text-muted);font-size:12px;font-style:italic}
+.json-copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:8px 20px;background:var(--color-success);color:#fff;border-radius:20px;font-size:13px;font-weight:600;z-index:999;animation:jsonPop .3s ease-out}
+@keyframes jsonPop{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(max-width:767px){.json-input{min-height:200px}.json-output{min-height:200px}}
+</style>
+
+<div class="json-tool">
+  <!-- Toolbar -->
+  <div class="json-toolbar">
+    <div class="json-toolbar-left">
+      <button class="json-tool-btn active" data-mode="format" onclick="setMode('format')"><span class="icon">📊</span> 格式化</button>
+      <button class="json-tool-btn" data-mode="compress" onclick="setMode('compress')"><span class="icon">📦</span> 压缩</button>
+      <button class="json-tool-btn" data-mode="escape" onclick="setMode('escape')"><span class="icon">🔒</span> 转义</button>
+      <button class="json-tool-btn" data-mode="unescape" onclick="setMode('unescape')"><span class="icon">🔓</span> 反转义</button>
+    </div>
+    <div class="json-toolbar-right">
+      <button class="json-tool-btn" id="btnExpand" onclick="expandAll()" style="display:none"><span class="icon">➕</span> 展开</button>
+      <button class="json-tool-btn" id="btnCollapse" onclick="collapseAll()" style="display:none"><span class="icon">➖</span> 收起</button>
+      <button class="json-tool-btn" id="btnCopy" onclick="copyOutput()" style="display:none"><span class="icon">📋</span> 复制</button>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <div class="json-panels">
+    <!-- Input Panel -->
+    <div class="json-panel">
+      <div class="json-panel-header">
+        <span class="json-panel-title">输入</span>
+        <div class="json-panel-actions">
+          <button class="json-panel-action" onclick="pasteInput()">粘贴</button>
+          <button class="json-panel-action" id="btnClear" onclick="clearInput()" style="display:none">清空</button>
+        </div>
+      </div>
+      <textarea class="json-input" id="jsonInput" placeholder="粘贴或输入 JSON..." oninput="debouncedProcess()"></textarea>
+      <div class="json-panel-footer" id="inputStats" style="display:none"><span class="json-stats"></span></div>
+    </div>
+
+    <!-- Output Panel -->
+    <div class="json-panel">
+      <div class="json-panel-header">
+        <span class="json-panel-title" id="outputTitle">格式化结果</span>
+        <div class="json-panel-actions">
+          <button class="json-panel-action" id="btnCopyOut" onclick="copyOutput()" style="display:none">复制</button>
+        </div>
+      </div>
+      <div id="jsonOutput" class="json-output">
+        <div class="json-empty">
+          <div class="json-empty-icon">{ }</div>
+          <div class="json-empty-text">粘贴 JSON 开始格式化</div>
+        </div>
+      </div>
+      <div class="json-panel-footer" id="outputStats" style="display:none"><span class="json-stats"></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var jsonMode='format',jsonInput=document.getElementById('jsonInput'),jsonOutput=document.getElementById('jsonOutput');
+var expanded={},debounceTimer=null,jsonTreeData=null;
+
+function setMode(m){
+  jsonMode=m;
+  document.querySelectorAll('.json-tool-btn[data-mode]').forEach(function(b){b.classList.toggle('active',b.dataset.mode===m)});
+  var titles={format:'格式化结果',compress:'压缩结果',escape:'转义结果',unescape:'反转义结果'};
+  document.getElementById('outputTitle').textContent=titles[m];
+  process();
+}
+
+function debouncedProcess(){clearTimeout(debounceTimer);debounceTimer=setTimeout(process,300)}
+
+function process(){
+  var errEl=document.querySelector('.json-error');if(errEl)errEl.remove();
+  jsonOutput.innerHTML='';jsonTreeData=null;expanded={};
+  document.getElementById('btnExpand').style.display='none';
+  document.getElementById('btnCollapse').style.display='none';
+  document.getElementById('btnCopy').style.display='none';
+  document.getElementById('btnCopyOut').style.display='none';
+  
+  var input=jsonInput.value.trim();
+  if(!input){updateEmpty();updateStats('input','');return}
+  
+  try{
+    var obj=smartParse(input);
+    if(jsonMode==='format'){
+      var formatted=JSON.stringify(obj,null,2);
+      jsonTreeData=buildTree(obj,'$');
+      expandAllNodes(jsonTreeData);
+      renderTree();
+      document.getElementById('btnExpand').style.display='';
+      document.getElementById('btnCollapse').style.display='';
+    }else if(jsonMode==='compress'){
+      jsonOutput.textContent=JSON.stringify(obj);
+    }else if(jsonMode==='escape'){
+      try{var o=JSON.parse(input);jsonOutput.textContent=JSON.stringify(JSON.stringify(o))}catch(e){jsonOutput.textContent=JSON.stringify(input)}
+    }else if(jsonMode==='unescape'){
+      try{var r=JSON.parse(input);if(typeof r==='string'){jsonOutput.textContent=JSON.stringify(JSON.parse(r),null,2)}else{jsonOutput.textContent=JSON.stringify(r,null,2)}}catch(e){try{jsonOutput.textContent=JSON.parse('"'+input.replace(/^"|"$/g,'')+'"')}catch(e2){jsonOutput.textContent=input}}
+    }
+    document.getElementById('btnCopy').style.display='';
+    document.getElementById('btnCopyOut').style.display='';
+  }catch(e){
+    var pos=(e.message||'').match(/position\s+(\d+)/i);
+    var msg=pos?'第'+(input.substring(0,parseInt(pos[1])).split('\n').length)+'行: '+(e.message||'JSON 解析错误'):(e.message||'JSON 解析错误');
+    jsonOutput.innerHTML='<div class="json-error"><span class="json-error-icon">⚠️</span><span class="json-error-text">'+esc(msg)+'</span></div>';
+  }
+  updateStats('input',jsonInput.value);
+  var outText=jsonTreeData?JSON.stringify(jsonTreeData.value,null,2):(jsonOutput.textContent||'');
+  updateStats('output',outText);
+}
+
+function smartParse(s){var o=JSON.parse(s);if(typeof o==='string'){try{return JSON.parse(o)}catch(e){return o}}return o}
+
+function updateEmpty(){
+  var texts={format:'粘贴 JSON 开始格式化',compress:'粘贴 JSON 开始压缩',escape:'输入文本，转义为 JSON 字符串',unescape:'输入转义字符串，还原为可读文本'};
+  jsonOutput.innerHTML='<div class="json-empty"><div class="json-empty-icon">{ }</div><div class="json-empty-text">'+texts[jsonMode]+'</div></div>';
+}
+function updateStats(pos,text){
+  var el=document.getElementById(pos+'Stats');
+  if(!text){el.style.display='none';return}
+  el.style.display='';el.querySelector('.json-stats').textContent=text.split('\n').length+' 行 · '+text.length+' 字符';
+}
+
+function clearInput(){jsonInput.value='';process()}
+function pasteInput(){if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(function(t){if(t){jsonInput.value=t;process()}})}}
+function copyOutput(){
+  var t=jsonTreeData?JSON.stringify(jsonTreeData.value,null,2):(jsonOutput.textContent||'');
+  if(navigator.clipboard){navigator.clipboard.writeText(t)}
+  var d=document.createElement('div');d.className='json-copied';d.textContent='✓ 已复制';document.body.appendChild(d);setTimeout(function(){d.remove()},1500);
+}
+
+/* ===== 树形视图 ===== */
+function buildTree(data,path,key){
+  if(data===null)return{key:key||'$',value:null,type:'null',path:path};
+  if(Array.isArray(data))return{key:key||'$',value:data,type:'array',path:path,children:data.map(function(item,i){return buildTree(item,path+'['+i+']',''+i)})};
+  if(typeof data==='object')return{key:key||'$',value:data,type:'object',path:path,children:Object.keys(data).map(function(k){return buildTree(data[k],path+'.'+k,k)})};
+  return{key:key||'$',value:data,type:typeof data,path:path};
+}
+function expandAllNodes(n){if(n.type==='object'||n.type==='array'){expanded[n.path]=true;if(n.children)n.children.forEach(expandAllNodes)}}
+function expandAll(){if(jsonTreeData)expandAllNodes(jsonTreeData);renderTree()}
+function collapseAll(){expanded={};renderTree()}
+
+function renderTree(){
+  jsonOutput.innerHTML='';
+  var container=document.createElement('div');container.className='json-tree';
+  container.appendChild(renderNode(jsonTreeData,0));
+  jsonOutput.appendChild(container);
+}
+
+function renderNode(node,depth){
+  var indent=depth*20;
+  if(node.type!=='object'&&node.type!=='array'){
+    var leaf=document.createElement('div');leaf.className='json-tree-leaf';
+    leaf.style.paddingLeft=indent+'px';
+    if(node.key!=='$'){
+      leaf.innerHTML+='<span class="json-tree-key">"'+esc(node.key)+'"</span><span class="json-tree-colon">: </span>';
+    }
+    leaf.innerHTML+=renderValue(node.value,node.type);
+    return leaf;
+  }
+  var isExp=expanded[node.path];
+  var bracket=node.type==='array'?['[',']']:['{','}'];
+  var childCount=node.children?node.children.length:0;
+  
+  var header=document.createElement('div');header.className='json-tree-header';
+  header.style.paddingLeft=indent+'px';
+  header.onclick=function(){expanded[node.path]=!expanded[node.path];renderTree()};
+  
+  var toggle=document.createElement('span');toggle.className='json-tree-toggle';
+  toggle.textContent=isExp?'▼':'▶';toggle.onclick=function(e){e.stopPropagation();expanded[node.path]=!isExp;renderTree()};
+  header.appendChild(toggle);
+  
+  if(node.key!=='$'){
+    header.innerHTML+='<span class="json-tree-key">"'+esc(node.key)+'"</span><span class="json-tree-colon">: </span>';
+  }
+  header.innerHTML+='<span class="json-tree-bracket">'+bracket[0]+'</span>';
+  if(!isExp)header.innerHTML+='<span class="json-tree-summary"> '+childCount+' items </span><span class="json-tree-bracket">'+bracket[1]+'</span>';
+  
+  var container=document.createElement('div');container.className='json-tree-node';container.appendChild(header);
+  
+  if(isExp&&node.children){
+    node.children.forEach(function(child){container.appendChild(renderNode(child,depth+1))});
+    var footer=document.createElement('div');footer.className='json-tree-leaf';
+    footer.style.paddingLeft=indent+'px';
+    footer.innerHTML='<span class="json-tree-bracket">'+bracket[1]+'</span>';
+    container.appendChild(footer);
+  }
+  return container;
+}
+
+function renderValue(val,type){
+  if(type==='null')return'<span class="json-tree-null">null</span>';
+  if(type==='string')return'<span class="json-tree-str">"'+esc(val)+'"</span>';
+  if(type==='number')return'<span class="json-tree-num">'+val+'</span>';
+  if(type==='boolean')return'<span class="json-tree-bool">'+val+'</span>';
+  return esc(String(val));
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+</script>

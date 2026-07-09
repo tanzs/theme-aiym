@@ -1,0 +1,7 @@
+node_modules/
+package-lock.json
+create_tool_pages.py
+*.pyc
+__pycache__/
+.DS_Store
+setup_git.sh

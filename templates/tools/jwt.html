@@ -1,0 +1,53 @@
+<style>
+.json-tool{max-width:1100px;margin:0 auto;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.json-toolbar{display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px;background:var(--color-bg-secondary);border-radius:12px;padding:8px 12px;border:1px solid var(--color-border-primary)}
+.json-toolbar-right{display:flex;gap:4px}
+.json-tool-btn{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--color-text-secondary);font-weight:500;background:none;border:none;font-family:inherit}
+.json-tool-btn:hover{background:rgba(var(--color-brand-rgb,155,126,216),.08)}
+.json-tool-btn .icon{font-size:16px}
+.json-panels{display:flex;flex-direction:column;gap:12px}
+@media(min-width:768px){.json-panels{flex-direction:row}.json-panel{flex:1;min-width:0}}
+.json-panel{background:var(--color-bg-secondary);border-radius:14px;border:1px solid var(--color-border-primary);overflow:hidden;display:flex;flex-direction:column}
+.json-panel-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--color-border-primary)}
+.json-panel-title{font-size:13px;font-weight:600;color:var(--color-text-secondary)}
+.json-input{padding:12px 16px;font-size:14px;font-family:'SF Mono','Menlo','JetBrains Mono',monospace;color:var(--color-text-primary);background:transparent;border:none;width:100%;box-sizing:border-box;resize:none;outline:none;min-height:300px;line-height:1.6}
+.json-output{padding:12px 16px;font-size:13px;font-family:'SF Mono','Menlo','JetBrains Mono',monospace;color:var(--color-text-primary);word-break:break-all;white-space:pre-wrap;line-height:1.6;min-height:300px;overflow:auto}
+.json-copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:8px 20px;background:var(--color-success);color:#fff;border-radius:20px;font-size:13px;font-weight:600;z-index:999;animation:jsonPop .3s ease-out}
+@keyframes jsonPop{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@media(max-width:767px){.json-input{min-height:200px}.json-output{min-height:200px}}
+</style>
+
+<div class="json-tool">
+  <div class="json-toolbar">
+    <div class="json-toolbar-right">
+      <button class="json-tool-btn" onclick="copyOutput()"><span class="icon">📋</span> 复制</button>
+    </div>
+  </div>
+  <div class="json-panels">
+    <div class="json-panel">
+      <div class="json-panel-header"><span class="json-panel-title">JWT Token</span></div>
+      <textarea class="json-input" id="jwtInput" placeholder="粘贴 JWT Token..." oninput="decodeJwt()">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</textarea>
+    </div>
+    <div class="json-panel">
+      <div class="json-panel-header"><span class="json-panel-title">解码结果</span></div>
+      <div class="json-output" id="jwtOutput"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function decodeJwt(){
+  try{
+    var parts=document.getElementById('jwtInput').value.trim().split('.');
+    if(parts.length<2)throw new Error('无效 JWT');
+    var header=JSON.stringify(JSON.parse(atob(parts[0])),null,2);
+    var payload=JSON.stringify(JSON.parse(atob(parts[1])),null,2);
+    var sig=parts[2]||'(无签名)';
+    document.getElementById('jwtOutput').textContent='【Header】\n'+header+'\n\n【Payload】\n'+payload+'\n\n【Signature】\n'+sig;
+  }catch(e){
+    document.getElementById('jwtOutput').textContent='解码失败: '+e.message;
+  }
+}
+function copyOutput(){var t=document.getElementById('jwtOutput').textContent;if(navigator.clipboard)navigator.clipboard.writeText(t);var d=document.createElement('div');d.className='json-copied';d.textContent='✓ 已复制';document.body.appendChild(d);setTimeout(function(){d.remove()},1500)}
+decodeJwt();
+</script>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+<style>
+/* 404 错误页 */
+.error-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 48px 24px;
+    text-align: center;
+}
+.error-illustration {
+    width: 160px;
+    height: 160px;
+    margin-bottom: 28px;
+    animation: error-float 3s ease-in-out infinite;
+}
+@keyframes error-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+.error-code {
+    font-size: 64px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin: 0 0 12px;
+    letter-spacing: -2px;
+}
+.error-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0 0 8px;
+    font-family: 'Noto Sans SC', sans-serif;
+}
+.error-desc {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin: 0 0 32px;
+    line-height: 1.6;
+    max-width: 360px;
+}
+.error-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.error-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    border: none;
+}
+.error-btn--primary {
+    background: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(var(--color-brand-rgb), 0.25);
+}
+.error-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(var(--color-brand-rgb), 0.35);
+}
+.error-btn--ghost {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-primary);
+}
+.error-btn--ghost:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+.error-hint {
+    margin-top: 40px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    opacity: 0.6;
+}
+@media (max-width: 767px) {
+    .error-wrap { min-height: 50vh; padding: 32px 16px; }
+    .error-illustration { width: 120px; height: 120px; margin-bottom: 20px; }
+    .error-code { font-size: 48px; }
+    .error-title { font-size: 18px; }
+    .error-desc { font-size: 13px; }
+    .error-actions { flex-direction: column; width: 100%; max-width: 240px; }
+    .error-btn { width: 100%; justify-content: center; }
+}
+[data-theme="dark"] .error-btn--ghost {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+    color: var(--color-text-muted);
+}
+[data-theme="dark"] .error-btn--ghost:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--color-text-primary);
+}
+</style>
+
+<div class="error-wrap">
+    <!-- 可爱小幽灵 SVG -->
+    <svg class="error-illustration" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="ghost-grad" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="var(--color-brand)" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="var(--color-brand)" stop-opacity="0.06"/>
+            </linearGradient>
+        </defs>
+        <!-- 幽灵身体 -->
+        <path d="M100 30 C60 30 35 65 35 105 L35 155 C35 155 50 145 60 155 C70 165 80 145 90 155 C100 165 110 145 120 155 C130 165 140 145 150 155 C160 165 165 155 165 155 L165 105 C165 65 140 30 100 30Z"
+              fill="url(#ghost-grad)" stroke="var(--color-brand)" stroke-width="2" stroke-opacity="0.3"/>
+        <!-- 眼睛 -->
+        <circle cx="80" cy="95" r="8" fill="var(--color-brand)" opacity="0.6"/>
+        <circle cx="120" cy="95" r="8" fill="var(--color-brand)" opacity="0.6"/>
+        <circle cx="82" cy="92" r="3" fill="#fff" opacity="0.9"/>
+        <circle cx="122" cy="92" r="3" fill="#fff" opacity="0.9"/>
+        <!-- 嘴巴（俏皮小嘴） -->
+        <path d="M92 115 Q100 122 108 115" stroke="var(--color-brand)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- 腮红 -->
+        <circle cx="65" cy="108" r="8" fill="#FF6B9D" opacity="0.12"/>
+        <circle cx="135" cy="108" r="8" fill="#FF6B9D" opacity="0.12"/>
+        <!-- 问号 -->
+        <text x="145" y="58" font-size="28" font-weight="700" fill="var(--color-brand)" opacity="0.4" font-family="sans-serif">?</text>
+    </svg>
+
+    <p class="error-code">404</p>
+    <h1 class="error-title">迷路了？</h1>
+    <p class="error-desc">这个页面好像去旅行了，但首页永远在等你回来~</p>
+
+    <div class="error-actions">
+        <a href="/" class="error-btn error-btn--primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            回到首页
+        </a>
+        <button onclick="history.back()" class="error-btn error-btn--ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            返回上页
+        </button>
+    </div>
+
+    <p class="error-hint">如果觉得不对劲，也许是链接打错了？</p>
+</div>
+</th:block>
+</html>

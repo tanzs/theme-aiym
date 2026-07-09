@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <style>
+    .ab { max-width: 720px; margin: 0 auto; padding: 28px 0 72px; }
+    @media (max-width: 767px) { .ab { padding: 18px 14px 64px; } }
+
+    /* Hero */
+    .ab-hero { text-align: center; padding: 28px 0 20px; animation: abUp .45s ease-out both; }
+    .ab-hero__logo {
+        width: 76px; height: 76px; border-radius: 20px; margin: 0 auto 14px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--color-bg-secondary); border: 1.5px solid var(--color-border-primary);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden;
+        transition: transform .3s ease;
+    }
+    .ab-hero__logo:hover { transform: scale(1.06) rotate(-2deg); }
+    .ab-hero__logo img { width: 46px; height: 46px; object-fit: contain; }
+    .ab-hero__name { font-size: 22px; font-weight: 700; color: var(--color-text-primary); letter-spacing: .5px; }
+    [data-theme="dark"] .ab-hero__name { color: #f0ece6; }
+    .ab-hero__slogan { font-size: 13px; color: var(--color-text-muted); margin-top: 5px; letter-spacing: 2px; }
+    .ab-hero__wave { display: inline-block; font-size: 18px; margin-top: 10px; animation: abWave 2s ease-in-out infinite; }
+    @keyframes abWave { 0%,100%{transform:rotate(0)} 25%{transform:rotate(14deg)} 75%{transform:rotate(-8deg)} }
+
+    /* Content */
+    .ab-content {
+        background: var(--color-bg-secondary); border-radius: 16px; padding: 24px 22px;
+        margin-bottom: 14px; border: 1px solid var(--color-border-primary);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04); font-size: 15px; line-height: 1.8;
+        color: var(--color-text-secondary); animation: abUp .45s ease-out .08s both;
+    }
+    [data-theme="dark"] .ab-content { background: #1e1e1e; border-color: #2a2a2a; }
+    .ab-content :first-child { margin-top: 0; }
+    .ab-content :last-child { margin-bottom: 0; }
+    .ab-content h2, .ab-content h3 { color: var(--color-text-primary); font-weight: 700; margin: 20px 0 10px; }
+    [data-theme="dark"] .ab-content h2, [data-theme="dark"] .ab-content h3 { color: #f0ece6; }
+    .ab-content h2 { font-size: 18px; }
+    .ab-content h3 { font-size: 16px; }
+    .ab-content p { margin: 0 0 12px; }
+    .ab-content ul, .ab-content ol { padding-left: 20px; margin: 0 0 12px; }
+    .ab-content li { margin-bottom: 4px; }
+    .ab-content a { color: var(--color-brand); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s; }
+    .ab-content a:hover { border-bottom-color: var(--color-brand); }
+    .ab-content blockquote {
+        border-left: 3px solid var(--color-brand); margin: 0 0 12px; padding: 10px 16px;
+        background: var(--color-brand-light); border-radius: 0 10px 10px 0;
+        color: var(--color-text-secondary); font-style: italic;
+    }
+    .ab-content img { max-width: 100%; border-radius: 10px; }
+
+    /* Contact */
+    .ab-contact {
+        background: var(--color-bg-secondary); border-radius: 16px; padding: 6px 20px;
+        margin-bottom: 14px; border: 1px solid var(--color-border-primary);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04); animation: abUp .45s ease-out .16s both;
+    }
+    [data-theme="dark"] .ab-contact { background: #1e1e1e; border-color: #2a2a2a; }
+    .ab-contact__item {
+        display: flex; align-items: center; gap: 12px; padding: 13px 0;
+        border-bottom: 1px solid var(--color-border-secondary); cursor: pointer; transition: opacity .2s;
+    }
+    .ab-contact__item:last-child { border-bottom: none; }
+    .ab-contact__item:hover { opacity: .75; }
+    .ab-contact__icon {
+        width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .ab-contact__icon span { font-size: 20px; }
+    .ab-contact__info { flex: 1; min-width: 0; }
+    .ab-contact__label { font-size: 11px; color: var(--color-text-muted); display: block; text-transform: uppercase; letter-spacing: .5px; }
+    .ab-contact__val { font-size: 14px; color: var(--color-text-primary); font-weight: 500; margin-top: 1px; display: block; }
+    .ab-contact__btn {
+        font-size: 12px; color: var(--color-brand); font-weight: 600;
+        padding: 4px 14px; background: var(--color-brand-light); border-radius: 20px;
+        flex-shrink: 0; text-decoration: none; transition: all .2s;
+    }
+    .ab-contact__btn:hover { background: var(--color-brand); color: #fff; }
+
+    /* QR Modal */
+    .ab-qr-mask {
+        position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 999;
+        display: none; align-items: center; justify-content: center;
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    .ab-qr-mask.show { display: flex; }
+    .ab-qr-box {
+        background: var(--color-bg-secondary); border-radius: 20px; padding: 28px 24px 22px;
+        display: flex; flex-direction: column; align-items: center; width: 260px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.2); animation: abPop .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .ab-qr-title { font-size: 16px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 16px; }
+    .ab-qr-img { width: 180px; height: 180px; border-radius: 12px; border: 1px solid var(--color-border-primary); }
+    .ab-qr-name { font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-top: 14px; }
+    .ab-qr-hint { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+
+    @keyframes abUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes abPop { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
+    </style>
+
+    <div class="ab page-content">
+        <!-- Hero -->
+        <div class="ab-hero">
+            <div class="ab-hero__logo">
+                <img th:if="${site.logo}" th:src="${site.logo}" th:alt="${site.title}" loading="lazy">
+                <span th:unless="${site.logo}" style="font-size:26px;font-weight:800;color:var(--color-brand);"
+                      th:text="${#strings.substring(site.title, 0, 1)}">A</span>
+            </div>
+            <div class="ab-hero__name" th:text="${site.title}">AIYM-启梦</div>
+            <div class="ab-hero__slogan" th:text="${site.subtitle ?: '创意 · 技术 · 分享'}">创意 · 技术 · 分享</div>
+            <div class="ab-hero__wave">👋</div>
+        </div>
+
+        <!-- 主体内容: 后台 HTML 配置 -->
+        <div class="ab-content" th:if="${theme.config.about?.aboutContent != null and theme.config.about.aboutContent != ''}"
+             th:utext="${theme.config.about.aboutContent}"></div>
+
+        <!-- 联系方式: 后台 repeater 数组 + 旧格式兼容 -->
+        <div class="ab-contact" id="ab-contact"></div>
+    </div>
+
+    <!-- QR 弹窗 -->
+    <div class="ab-qr-mask" id="ab-qr-mask">
+        <div class="ab-qr-box">
+            <div class="ab-qr-title">扫一扫关注 📱</div>
+            <img class="ab-qr-img" id="ab-qr-img" src="" alt="二维码">
+            <div class="ab-qr-name" id="ab-qr-name"></div>
+            <div class="ab-qr-hint">微信搜索关注</div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    (function() {
+        var raw = /*[[${theme.config.about}]]*/ null;
+        if (!raw) return;
+        var cfg = raw.realNode || raw;
+        var globalQr = cfg.aboutQrUrl || cfg.aboutWechatQrUrl || '';
+        var mask = document.getElementById('ab-qr-mask');
+
+        /* 新格式: aboutLinks (repeater array) */
+        var links = cfg.aboutLinks;
+
+        /* 旧格式兼容 */
+        if (!links || !links.length) {
+            links = [];
+            if (cfg.aboutContactWechat) links.push({ icon: 'ri-wechat-line', label: '公众号', value: cfg.aboutContactWechat, action: 'copy', qr: globalQr });
+            if (cfg.aboutContactWeb) links.push({ icon: 'ri-global-line', label: '网站', value: cfg.aboutContactWeb.replace(/^https?:\/\//, ''), action: 'link', qr: '' });
+            if (cfg.aboutContactEmail) links.push({ icon: 'ri-mail-line', label: '邮箱', value: cfg.aboutContactEmail, action: 'mail', qr: '' });
+        }
+        if (!links.length) return;
+        var actionText = { copy: '复制', link: '访问', mail: '发送' };
+
+        var el = document.getElementById('ab-contact');
+        var h = '';
+        links.forEach(function(lnk) {
+            var act = lnk.action || 'copy';
+            var href = '';
+            if (act === 'link') href = (lnk.value || '').indexOf('http') === 0 ? lnk.value : 'https://' + lnk.value;
+            var qrUrl = lnk.qr || '';
+            var showQr = (act === 'copy' && qrUrl);
+            var btnText = showQr ? '查看' : actionText[act];
+            var qrAttr = showQr ? ' data-qr="' + esc(qrUrl) + '"' : '';
+
+            h += '<div class="ab-contact__item" data-action="' + act + '" data-val="' + esc(lnk.value || '') + '"' + qrAttr + '>';
+            h += '<div class="ab-contact__icon">';
+            h += '<span class="iconify" data-icon="' + esc(lnk.icon || '') + '"></span>';
+            h += '</div>';
+            h += '<div class="ab-contact__info">';
+            h += '<span class="ab-contact__label">' + esc(lnk.label || '') + '</span>';
+            h += '<span class="ab-contact__val">' + esc(lnk.value || '') + '</span>';
+            h += '</div>';
+            if (act === 'link') {
+                h += '<a class="ab-contact__btn" href="' + esc(href) + '" target="_blank" rel="noopener">' + btnText + '</a>';
+            } else if (act === 'mail') {
+                h += '<a class="ab-contact__btn" href="mailto:' + esc(lnk.value || '') + '">' + btnText + '</a>';
+            } else {
+                h += '<span class="ab-contact__btn">' + btnText + '</span>';
+            }
+            h += '</div>';
+        });
+        el.innerHTML = h;
+
+        /* 所有 <a> 原生链接阻止冒泡 */
+        el.querySelectorAll('.ab-contact__btn[href]').forEach(function(a) {
+            a.addEventListener('click', function(e) { e.stopPropagation(); });
+        });
+
+        /* 事件委托 */
+        el.addEventListener('click', function(e) {
+            var item = e.target.closest('.ab-contact__item');
+            if (!item) return;
+            var action = item.getAttribute('data-action');
+            var val = item.getAttribute('data-val');
+            if (action === 'link') {
+                window.open(val.indexOf('http') === 0 ? val : 'https://' + val, '_blank');
+                return;
+            }
+            if (action === 'mail') {
+                window.location.href = 'mailto:' + val;
+                return;
+            }
+            /* copy */
+            var qr = item.getAttribute('data-qr');
+            if (qr) {
+                document.getElementById('ab-qr-img').src = qr;
+                document.getElementById('ab-qr-name').textContent = val;
+                mask.classList.add('show');
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(val);
+            }
+        });
+        mask.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    })();
+    /*]]>*/
+    </script>
+</th:block>
+
+</html>

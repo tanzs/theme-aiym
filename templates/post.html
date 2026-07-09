@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <style>
+    /* 覆盖 style.css 的 miniapp 卡片包裹样式 */
+    .post-content { background: none !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+
+    /* 桌面端三栏布局：TOC | 内容 */
+    .post-layout { max-width: 1100px; margin: 0 auto; padding: 8px 0 48px; display: flex; gap: 32px; }
+    @media (min-width: 768px) { .post-layout { padding: 32px 32px 64px; } }
+    @media (max-width: 1023px) { .post-layout { flex-direction: column; } }
+
+    .post-main { flex: 1; min-width: 0; background: var(--color-bg-secondary); border-radius: 14px; padding: 16px; border: 1px solid var(--color-border-primary); box-sizing: border-box; }
+    @media (min-width: 768px) { .post-main { padding: 24px; } }
+    .post-title-page { font-size: 28px; font-weight: 700; line-height: 1.3; margin-bottom: 16px; }
+    @media (min-width: 768px) { .post-title-page { font-size: 34px; } }
+
+    .post-meta-simple { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--color-text-muted); margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border-primary); }
+    .post-meta-simple span { display: inline-flex; align-items: center; gap: 4px; }
+    .post-share-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--color-border-primary); background: var(--color-bg-secondary); color: var(--color-text-muted); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+    .post-share-btn:hover { color: var(--color-brand); border-color: var(--color-brand); }
+    .post-share-btn.is-copied { color: var(--color-success); border-color: var(--color-success); }
+    .post-content { font-size: 16px; line-height: 1.8; }
+
+    /* 上下篇 - miniapp 风格 */
+    .post-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 48px 0 0; }
+    .post-nav__item { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--color-bg-secondary); border-radius: 12px; text-decoration: none; border: 1px solid var(--color-border-primary); transition: all 0.25s; }
+    .post-nav__item:hover { border-color: var(--color-brand); box-shadow: 0 4px 16px rgba(var(--color-brand-rgb), 0.1); transform: translateY(-2px); }
+    .post-nav__item--next { text-align: right; align-items: flex-end; }
+    .post-nav__label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--color-text-muted); font-weight: 500; }
+    .post-nav__item--next .post-nav__label { flex-direction: row-reverse; }
+    .post-nav__label svg { width: 14px; height: 14px; }
+    .post-nav__title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-nav__item:hover .post-nav__title { color: var(--color-brand); }
+    .post-nav__link { font-size: 13px; color: var(--color-brand); font-weight: 500; margin-top: 4px; }
+    .post-nav__item:hover .post-nav__link { text-decoration: underline; }
+
+    /* 评论区 */
+    .comment-section { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--color-border-primary); }
+    .comment-section h3, .comment-section h4 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--color-text-primary); }
+
+    /* === 桌面端 TOC 侧边栏（左侧固定） === */
+    .post-toc-sidebar {
+        display: none; /* 移动端隐藏 */
+    }
+    @media (min-width: 1024px) {
+        .post-toc-sidebar {
+            display: block;
+            width: 200px;
+            flex-shrink: 0;
+            order: -1; /* 放到左侧 */
+            position: sticky;
+            top: 80px;
+            align-self: flex-start;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        .post-toc-sidebar__title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--color-text-primary);
+        }
+        .post-toc-sidebar .post-toc-link {
+            display: block;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: var(--color-text-muted);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.15s;
+            line-height: 1.5;
+        }
+        .post-toc-sidebar .post-toc-link:hover { color: var(--color-brand); }
+        .post-toc-sidebar .post-toc-link--sub { padding-left: 24px; font-size: 12px; }
+        .post-toc-sidebar .post-toc-link--active { color: var(--color-brand); border-left-color: var(--color-brand); font-weight: 600; }
+    }
+
+    /* === 移动端 TOC 浮动按钮 === */
+    .post-toc-fab {
+        display: none; /* 桌面端隐藏 */
+    }
+    @media (max-width: 1023px) {
+        .post-toc-fab {
+            display: flex;
+            position: fixed; bottom: 70px; right: 16px; z-index: 200;
+            width: 44px; height: 44px; border-radius: 12px;
+            background: var(--color-bg-secondary); border: 1px solid var(--color-border-primary);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            align-items: center; justify-content: center;
+            cursor: pointer; color: var(--color-text-secondary); transition: all 0.2s;
+        }
+        .post-toc-fab:hover { background: var(--color-brand); color: #fff; border-color: var(--color-brand); }
+    }
+
+    /* === 移动端 TOC 滑出面板 === */
+    .post-toc-panel {
+        position: fixed; top: 0; right: 0; bottom: 0; z-index: 300;
+        width: 280px; max-width: 85vw;
+        background: var(--color-bg-secondary);
+        box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+        display: flex; flex-direction: column; overflow: hidden;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(100%);
+    }
+    .post-toc-panel.is-open { transform: translateX(0); }
+    .post-toc-panel__header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--color-border-primary); flex-shrink: 0; }
+    .post-toc-panel__title { font-size: 15px; font-weight: 600; }
+    .post-toc-panel__close { color: var(--color-text-muted); padding: 4px; }
+    .post-toc-panel__close:hover { color: var(--color-text-primary); }
+    .post-toc-panel__nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+    .post-toc-panel__nav .post-toc-link { display: block; padding: 8px 20px; font-size: 13px; color: var(--color-text-secondary); text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s; line-height: 1.5; }
+    .post-toc-panel__nav .post-toc-link:hover { color: var(--color-brand); background: rgba(var(--color-brand-rgb), 0.04); }
+    .post-toc-panel__nav .post-toc-link--sub { padding-left: 36px; font-size: 12px; }
+    .post-toc-panel__nav .post-toc-link--active { color: var(--color-brand); border-left-color: var(--color-brand); font-weight: 600; background: rgba(var(--color-brand-rgb), 0.06); }
+
+    .post-toc-mask { position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,0.3); display: none; }
+    .post-toc-mask.is-open { display: block; }
+
+    /* === 资源下载区 === */
+    .resource-hero-full { margin-bottom: 20px; border-radius: 12px; overflow: hidden; }
+    .resource-hero-full__img { width: 100%; max-height: 400px; object-fit: contain; display: block; border-radius: 12px; }
+    .post-cover { margin-bottom: 20px; border-radius: 12px; overflow: hidden; }
+    .post-cover__img { width: 100%; max-height: 400px; object-fit: cover; display: block; border-radius: 12px; }
+    .resource-download-info { background: var(--color-bg-secondary); border: 1px solid var(--color-border-primary); border-radius: 14px; margin-bottom: 24px; overflow: hidden; }
+    .resource-download-info__rows { padding: 4px 16px; }
+    .resource-download-info__row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-border-secondary); }
+    .resource-download-info__row:last-child { border-bottom: none; }
+    .resource-download-info__label { font-size: 13px; color: var(--color-text-muted); width: 50px; flex-shrink: 0; }
+    .resource-download-info__value { font-size: 13px; color: var(--color-text-primary); font-weight: 500; display: flex; align-items: center; gap: 8px; flex: 1; }
+    .resource-download-info__icon { width: 28px; height: 28px; border-radius: 6px; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .resource-download-info__icon img { width: 100%; height: 100%; object-fit: cover; }
+    .resource-download-info__actions { display: flex; gap: 10px; padding: 12px 16px 16px; }
+    .resource-download-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; background: var(--color-brand); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.2s; }
+    .resource-download-btn:hover { background: var(--color-brand-hover); }
+    .resource-download-disabled { flex: 1; text-align: center; padding: 12px; border-radius: 12px; background: var(--color-bg-tertiary); color: var(--color-text-muted); font-size: 13px; }
+    .resource-copy-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 12px; border-radius: 12px; border: 1px solid var(--color-border-primary); background: var(--color-bg-secondary); color: var(--color-text-secondary); font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .resource-copy-btn:hover { border-color: var(--color-brand); color: var(--color-brand); }
+    .resource-copy-btn.copied { border-color: var(--color-success); color: var(--color-success); }
+
+    /* === 补充说明 === */
+    .resource-supplement { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border-primary); }
+    .resource-supplement h2 { font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin: 24px 0 12px; }
+    .resource-supplement h2:first-child { margin-top: 0; }
+    .resource-supplement p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.8; margin: 8px 0; }
+    .resource-supplement blockquote { margin: 12px 0; padding: 12px 16px; background: rgba(var(--color-brand-rgb), 0.08); border-left: 3px solid var(--color-brand); border-radius: 0 8px 8px 0; }
+    .resource-supplement blockquote p { margin: 4px 0; font-size: 14px; color: var(--color-text-secondary); line-height: 1.8; }
+    </style>
+
+    <div class="post-layout" id="post-layout" th:attr="data-resource-cat=${theme.config.content?.resourceCategory ?: ''}, data-post-categories=${post.categories != null and !#lists.isEmpty(post.categories) ? post.categories[0].metadata.name : ''}">
+        <div class="post-main">
+
+            <!-- 封面图（资源文章，JS 控制显隐） -->
+            <div id="resource-hero-section" class="resource-hero-full" style="display:none" th:if="${post.spec.cover}">
+                <img th:src="${post.spec.cover}" th:alt="${post.spec.title}" class="resource-hero-full__img" loading="lazy">
+            </div>
+
+            <!-- 文章封面图（所有文章，JS 检测图片加载后决定是否显示） -->
+            <div class="post-cover" style="display:none">
+                <img th:src="${post.spec.cover}" th:alt="${post.spec.title}" class="post-cover__img" loading="lazy" data-cover-img>
+            </div>
+
+            <h1 class="post-title-page" th:text="${post.spec.title}">文章标题</h1>
+
+            <div class="post-meta-simple">
+                <span th:text="${post.owner?.displayName ?: '未知'}">作者</span>
+                <span th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd HH:mm')}">2024-01-01</span>
+                <span th:if="${post.stats?.visit != null}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span th:text="${post.stats?.visit ?: 0}">0</span>
+                </span>
+                <span th:if="${post.stats?.comment != null}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span th:text="${post.stats?.comment ?: 0}">0</span>
+                </span>
+                <button class="post-share-btn" data-post-share type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    <span>分享</span>
+                </button>
+            </div>
+
+            <!-- 下载信息（资源文章，JS 控制显隐） -->
+            <div id="resource-download-section" class="resource-download-info" style="display:none">
+                <div class="resource-download-info__rows">
+                    <div class="resource-download-info__row">
+                        <span class="resource-download-info__label">名称</span>
+                        <span class="resource-download-info__value" th:text="${post.spec.title}">资源名称</span>
+                    </div>
+                    <div class="resource-download-info__row" th:if="${#annotations.get(post, 'theme.aiym.fun/icon-url') ?: #annotations.get(post, 'iconUrl')}">
+                        <span class="resource-download-info__label">图标</span>
+                        <span class="resource-download-info__value">
+                            <span class="resource-download-info__icon"><img th:src="${#annotations.get(post, 'theme.aiym.fun/icon-url') ?: #annotations.get(post, 'iconUrl')}" alt="" loading="lazy"></span>
+                        </span>
+                    </div>
+                    <div class="resource-download-info__row" th:if="${#annotations.get(post, 'theme.aiym.fun/version') ?: #annotations.get(post, 'version')}">
+                        <span class="resource-download-info__label">版本</span>
+                        <span class="resource-download-info__value" th:text="${#annotations.get(post, 'theme.aiym.fun/version') ?: #annotations.get(post, 'version')}">1.0.0</span>
+                    </div>
+                    <div class="resource-download-info__row">
+                        <span class="resource-download-info__label">系统</span>
+                        <span class="resource-download-info__value" th:text="${#annotations.get(post, 'theme.aiym.fun/platform') ?: #annotations.get(post, 'platform') ?: '全平台'}">全平台</span>
+                    </div>
+                </div>
+                <div class="resource-download-info__actions">
+                    <a th:if="${#annotations.get(post, 'theme.aiym.fun/download-url') ?: #annotations.get(post, 'downloadUrl')}" th:href="${#annotations.get(post, 'theme.aiym.fun/download-url') ?: #annotations.get(post, 'downloadUrl')}" class="resource-download-btn" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span th:text="${theme.config.resource?.downloadButtonText ?: '立即下载'}">立即下载</span>
+                    </a>
+                    <div th:unless="${#annotations.get(post, 'theme.aiym.fun/download-url') ?: #annotations.get(post, 'downloadUrl')}" class="resource-download-disabled">
+                        <span th:text="${theme.config.resource?.noDownloadTip ?: '暂未提供下载地址'}">暂未提供下载地址</span>
+                    </div>
+                    <button th:if="${#annotations.get(post, 'theme.aiym.fun/download-url') ?: #annotations.get(post, 'downloadUrl')}" class="resource-copy-btn" data-copy-url th:attr="data-url=${#annotations.get(post, 'theme.aiym.fun/download-url') ?: #annotations.get(post, 'downloadUrl')}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            复制链接
+                        </button>
+                    </div>
+                </header>
+            </div>
+
+            <div class="post-content" itemprop="articleBody" th:utext="${post.content?.content}" data-post-content></div>
+
+            <!-- 补充说明（资源文章，JS 控制显隐，Markdown 格式） -->
+            <th:block th:if="${theme.config.resource?.supplementContent}">
+                <script type="text/template" id="resource-supplement-md" th:utext="${theme.config.resource?.supplementContent}"></script>
+            </th:block>
+            <div id="resource-article-extra" style="display:none" class="resource-supplement" data-post-content></div>
+
+            <!-- 上下篇 placeholder -->
+            <div data-post-nav th:data-post-name="${post.metadata.name}"></div>
+
+            <div th:replace="~{modules/comment :: comment-post}"></div>
+        </div>
+
+        <!-- 桌面端 TOC 侧边栏 -->
+        <aside class="post-toc-sidebar" data-toc-sidebar>
+            <h4 class="post-toc-sidebar__title">目录</h4>
+            <nav data-toc-sidebar-nav></nav>
+        </aside>
+    </div>
+
+    <!-- 移动端 TOC 浮动按钮 -->
+    <button class="post-toc-fab" data-toc-toggle aria-label="目录">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- 移动端 TOC 滑出面板 -->
+    <div class="post-toc-panel" data-toc-panel>
+        <div class="post-toc-panel__header">
+            <h4 class="post-toc-panel__title">目录</h4>
+            <button class="post-toc-panel__close" data-toc-close aria-label="关闭">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <nav class="post-toc-panel__nav" data-toc-panel-nav></nav>
+    </div>
+    <div class="post-toc-mask" data-toc-mask></div>
+
+    <script>
+    (function() {
+        /* 分享按钮 - 复制链接+标题+引用 */
+        var shareBtn = document.querySelector('[data-post-share]');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function() {
+                var url = location.href;
+                var title = document.querySelector('.post-title-page')?.textContent || document.title;
+                var siteName = '[[${site.title}]]';
+                var siteDesc = '[[${site.subtitle ?: "创意 · 技术 · 分享"}]]';
+                var shareText = '📢 发现一篇好文，值得一看👇\n\n📌 ' + title + '\n🔗 ' + url + '\n\n—— 来自「' + siteName + '」✨\n🌐 ' + location.hostname + ' · ' + siteDesc;
+                navigator.clipboard.writeText(shareText).then(function() {
+                    var span = shareBtn.querySelector('span');
+                    span.textContent = '已复制';
+                    shareBtn.classList.add('is-copied');
+                    setTimeout(function() { span.textContent = '分享'; shareBtn.classList.remove('is-copied'); }, 2000);
+                }).catch(function() {
+                    var t = document.createElement('textarea');
+                    t.value = shareText; t.style.position = 'fixed'; t.style.opacity = '0';
+                    document.body.appendChild(t); t.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(t);
+                    var span = shareBtn.querySelector('span');
+                    span.textContent = '已复制';
+                    shareBtn.classList.add('is-copied');
+                    setTimeout(function() { span.textContent = '分享'; shareBtn.classList.remove('is-copied'); }, 2000);
+                });
+            });
+        }
+
+        /* 正文复制自动追加引用 */
+        document.addEventListener('copy', function(e) {
+            var sel = window.getSelection();
+            var postEl = document.querySelector('[data-post-content]');
+            if (!sel || sel.isCollapsed || !postEl || !postEl.contains(sel.anchorNode)) return;
+            var title = document.querySelector('.post-title-page')?.textContent || document.title;
+            var url = location.href;
+            var siteName = '[[${site.title}]]';
+            var excerpt = sel.toString().trim().slice(0, 100);
+            var attr = '\n\n———\n' + excerpt + (sel.toString().length > 100 ? '…' : '') + '\n📎 ' + title + '\n🔗 ' + url + '\n📢 来自「' + siteName + '」';
+            e.clipboardData.setData('text/plain', sel.toString() + attr);
+            e.preventDefault();
+        });
+
+        /* 上下篇 - 同分类按时间排序 */
+        var navEl = document.querySelector('[data-post-nav]');
+        if (navEl) {
+            var postName = navEl.getAttribute('data-post-name');
+            fetch('/apis/api.content.halo.run/v1alpha1/posts?page=1&size=100', { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var items = data.items || [];
+                    var cur = items.find(function(p) { return p.metadata && p.metadata.name === postName; });
+                    var cats = cur ? (cur.categories || []).map(function(c) { return c.metadata ? c.metadata.name : c.name; }) : [];
+                    var same = items.filter(function(p) {
+                        if (p.metadata && p.metadata.name === postName) return false;
+                        var pc = (p.categories || []).map(function(c) { return c.metadata ? c.metadata.name : c.name; });
+                        return cats.length === 0 || pc.some(function(c) { return cats.indexOf(c) !== -1; });
+                    }).sort(function(a, b) {
+                        return (a.spec?.publishTime || '').localeCompare(b.spec?.publishTime || '');
+                    });
+                    var prev = null, next = null;
+                    for (var i = 0; i < same.length; i++) {
+                        if ((same[i].spec?.publishTime || '') < (cur?.spec?.publishTime || '')) prev = same[i];
+                    }
+                    for (var i = same.length - 1; i >= 0; i--) {
+                        if ((same[i].spec?.publishTime || '') > (cur?.spec?.publishTime || '')) { next = same[i]; break; }
+                    }
+                    if (!prev && !next) { navEl.remove(); return; }
+                    var L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>';
+                    var R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>';
+                    var h = '<nav class="post-nav">';
+                    if (prev) h += '<a href="' + (prev.status?.permalink||'#') + '" class="post-nav__item"><span class="post-nav__label">' + L + ' 上一篇</span><span class="post-nav__title">' + (prev.spec?.title||'') + '</span><span class="post-nav__link">查看全文 →</span></a>';
+                    if (next) h += '<a href="' + (next.status?.permalink||'#') + '" class="post-nav__item post-nav__item--next"><span class="post-nav__label">下一篇 ' + R + '</span><span class="post-nav__title">' + (next.spec?.title||'') + '</span><span class="post-nav__link">← 查看全文</span></a>';
+                    h += '</nav>';
+                    navEl.outerHTML = h;
+                }).catch(function() { navEl.remove(); });
+        }
+
+        var content = document.querySelector('[data-post-content]');
+        if (!content) return;
+
+        var headings = content.querySelectorAll('h2, h3');
+        if (headings.length === 0) {
+            var sidebar = document.querySelector('[data-toc-sidebar]');
+            var fab = document.querySelector('[data-toc-toggle]');
+            if (sidebar) sidebar.style.display = 'none';
+            if (fab) fab.style.display = 'none';
+            return;
+        }
+
+        /* 生成目录 HTML */
+        function buildTocHtml() {
+            var html = '';
+            headings.forEach(function(h, i) {
+                var id = 'toc-' + i; h.id = id;
+                var level = h.tagName === 'H3' ? 1 : 0;
+                html += '<a href="#' + id + '" class="post-toc-link' + (level ? ' post-toc-link--sub' : '') + '" data-toc-link>' + h.textContent + '</a>';
+            });
+            return html;
+        }
+
+        var tocHtml = buildTocHtml();
+
+        /* 桌面端侧边栏 */
+        var sidebarNav = document.querySelector('[data-toc-sidebar-nav]');
+        if (sidebarNav) sidebarNav.innerHTML = tocHtml;
+
+        /* 移动端面板 */
+        var panelNav = document.querySelector('[data-toc-panel-nav]');
+        if (panelNav) panelNav.innerHTML = tocHtml;
+
+        /* 移动端面板开关 */
+        var fab2 = document.querySelector('[data-toc-toggle]');
+        var panel = document.querySelector('[data-toc-panel]');
+        var mask = document.querySelector('[data-toc-mask]');
+        var closeBtn = document.querySelector('[data-toc-close]');
+        function openToc() { panel.classList.add('is-open'); mask.classList.add('is-open'); document.body.style.overflow = 'hidden'; }
+        function closeToc() { panel.classList.remove('is-open'); mask.classList.remove('is-open'); document.body.style.overflow = ''; }
+
+        if (fab2) fab2.addEventListener('click', openToc);
+        if (closeBtn) closeBtn.addEventListener('click', closeToc);
+        if (mask) mask.addEventListener('click', closeToc);
+
+        /* 点击链接关闭面板 */
+        panelNav.addEventListener('click', function(e) { if (e.target.closest('[data-toc-link]')) closeToc(); });
+
+        /* 滚动高亮 - 同时更新桌面端和移动端 */
+        var allLinks = document.querySelectorAll('[data-toc-link]');
+        var obs = new IntersectionObserver(function(entries) {
+            entries.forEach(function(en) {
+                if (en.isIntersecting) {
+                    allLinks.forEach(function(l) { l.classList.remove('post-toc-link--active'); });
+                    document.querySelectorAll('[href="#' + en.target.id + '"]').forEach(function(a) {
+                        a.classList.add('post-toc-link--active');
+                    });
+                }
+            });
+        }, { rootMargin: '-80px 0px -70% 0px' });
+        headings.forEach(function(h) { obs.observe(h); });
+    })();
+
+    // 资源分类检测：显示封面图、下载信息和补充说明
+    (function() {
+        // 简易 Markdown 解析器
+        function md2html(md) {
+            if (!md) return '';
+            // 先按行处理
+            var lines = md.split('\n');
+            var html = '';
+            var inBlockquote = false;
+            var bqLines = [];
+            function flushBq() {
+                if (bqLines.length) {
+                    html += '<blockquote>' + bqLines.join('') + '</blockquote>';
+                    bqLines = [];
+                }
+                inBlockquote = false;
+            }
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                // 引用块
+                if (/^>\s?/.test(line)) {
+                    if (!inBlockquote) inBlockquote = true;
+                    var content = line.replace(/^>\s?/, '');
+                    // 处理内联格式
+                    content = content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    content = content.replace(/\*(.+?)\*/g, '<em>$1</em>');
+                    bqLines.push('<p>' + content + '</p>');
+                    continue;
+                } else if (inBlockquote) {
+                    flushBq();
+                }
+                // 标题
+                if (/^### (.+)$/.test(line)) { html += '<h3>' + line.replace(/^### /, '') + '</h3>'; continue; }
+                if (/^## (.+)$/.test(line)) { html += '<h2 id="' + line.replace(/^## /, '') + '">' + line.replace(/^## /, '') + '</h2>'; continue; }
+                if (/^# (.+)$/.test(line)) { html += '<h2 id="' + line.replace(/^# /, '') + '">' + line.replace(/^# /, '') + '</h2>'; continue; }
+                // 空行
+                if (line.trim() === '') { html += '\n'; continue; }
+                // 普通段落
+                var p = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+                html += '<p>' + p + '</p>\n';
+            }
+            flushBq();
+            return html;
+        }
+
+        var layout = document.getElementById('post-layout');
+        if (!layout) return;
+
+        // 普通文章封面图：JS 检测图片是否真正加载成功（Halo 无封面时 spec.cover 会被赋为 permalink）
+        var coverImg = document.querySelector('.post-cover img[data-cover-img]');
+        if (coverImg) {
+            var coverDiv = coverImg.closest('.post-cover');
+            function showCover() { if (coverDiv) coverDiv.style.display = ''; }
+            function hideCover() { if (coverDiv) coverDiv.style.display = 'none'; }
+            if (coverImg.complete) {
+                coverImg.naturalWidth > 0 ? showCover() : hideCover();
+            } else {
+                coverImg.onload = function() { coverImg.naturalWidth > 0 ? showCover() : hideCover(); };
+                coverImg.onerror = hideCover;
+            }
+        }
+
+        var resourceCat = layout.getAttribute('data-resource-cat') || '';
+        var postCat = layout.getAttribute('data-post-categories') || '';
+        if (!resourceCat || !postCat) return;
+        var isResource = postCat === resourceCat;
+        if (isResource) {
+            // 隐藏普通封面图（资源文章用 resource-hero）
+            var postCover = document.querySelector('.post-cover');
+            if (postCover) postCover.style.display = 'none';
+            // 显示封面图
+            var heroSection = document.getElementById('resource-hero-section');
+            if (heroSection) {
+                var heroImg = heroSection.querySelector('img');
+                if (heroImg) {
+                    if (heroImg.complete && heroImg.naturalWidth === 0) {
+                        heroSection.style.display = 'none';
+                    } else {
+                        heroImg.onerror = function() { heroSection.style.display = 'none'; };
+                        heroSection.style.display = '';
+                    }
+                } else {
+                    heroSection.style.display = '';
+                }
+            }
+            // 显示下载信息
+            var dl = document.getElementById('resource-download-section');
+            if (dl) dl.style.display = '';
+            // 显示补充说明（Markdown 格式）
+            var extra = document.getElementById('resource-article-extra');
+            var mdScript = document.getElementById('resource-supplement-md');
+            if (extra && mdScript) {
+                var supplementMd = mdScript.textContent;
+                if (supplementMd) {
+                    extra.innerHTML = md2html(supplementMd);
+                    extra.style.display = '';
+                }
+            }
+            // 复制链接按钮
+            document.querySelectorAll('.resource-copy-btn[data-copy-url]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var url = btn.getAttribute('data-url');
+                    if (!url) return;
+                    navigator.clipboard.writeText(url).then(function() {
+                        btn.classList.add('copied');
+                        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 6L9 17l-5-5"/></svg> 已复制';
+                        setTimeout(function() {
+                            btn.classList.remove('copied');
+                            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> 复制链接';
+                        }, 2000);
+                    });
+                });
+            });
+            // 内容复制自动加引用
+            document.addEventListener('copy', function(e) {
+                var sel = window.getSelection();
+                if (!sel || sel.isCollapsed) return;
+                var text = sel.toString().trim();
+                if (!text) return;
+                var titleEl = document.querySelector('h1.post-title-page');
+                var titleText = titleEl ? titleEl.textContent.trim() : '';
+                var siteName = document.querySelector('.header-logo__title');
+                var siteNameText = siteName ? siteName.textContent.trim() : 'AIYM';
+                var siteSub = document.querySelector('.header-logo__sub');
+                var siteSubText = siteSub ? siteSub.textContent.trim() : '创意 · 技术 · 分享';
+                var pageUrl = window.location.href;
+                var homeUrl = window.location.origin;
+                var footer = '\n\n📌 摘自「' + titleText + '」\n🔗 ' + pageUrl + '\n\n—— 来自「' + siteNameText + '」✨ 转载请注明出处\n🌐 ' + homeUrl + ' · ' + siteSubText;
+                e.clipboardData.setData('text/plain', text + footer);
+                e.preventDefault();
+            });
+        }
+    })();
+    </script>
+
+        <!-- 返回顶部按钮 -->
+        <button class="back-to-top" data-back-to-top aria-label="返回顶部">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+</th:block>
+
+</html>

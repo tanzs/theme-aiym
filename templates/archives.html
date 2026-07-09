@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <div class="archives-page">
+        <header class="archives-header">
+            <h1 class="archives-title">文章归档</h1>
+        </header>
+
+        <th:block th:with="archivesPosts = ${postFinder.list({page: 1, size: 200, sort: {'spec.publishTime,desc'}})}">
+            <div class="archives-list">
+                <div th:each="post : ${archivesPosts.items}" class="archives-item">
+                    <time class="archives-item__date"
+                          th:datetime="${post.spec.publishTime}"
+                          th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}">
+                        2024-01-01
+                    </time>
+                    <h3 class="archives-item__title">
+                        <a th:href="@{${post.status?.permalink}}" th:text="${post.spec.title}">文章标题</a>
+                    </h3>
+                </div>
+            </div>
+        </th:block>
+    </div>
+</th:block>
+
+</html>

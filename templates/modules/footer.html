@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<footer th:fragment="footer" class="site-footer aiym-footer">
+    <div class="aiym-footer__line"></div>
+    <div class="aiym-footer__content">
+        <div class="aiym-footer__brand-row">
+            <div class="aiym-footer__logo">
+                <img th:if="${site.logo}" th:src="${site.logo}" th:alt="${site.title}" loading="lazy">
+                <span th:unless="${site.logo}" th:text="${#strings.substring(site.title, 0, 1)}">A</span>
+            </div>
+            <span class="aiym-footer__brand" th:text="${site.title}">AIYM</span>
+        </div>
+        <p class="aiym-footer__slogan" th:text="${site.subtitle ?: '创意 · 技术 · 分享'}">创意 · 技术 · 分享</p>
+        <p th:if="${theme.config.record?.icpRecord}" class="aiym-footer__icp">
+            <a th:href="${theme.config.record?.icpRecordUrl ?: 'https://beian.miit.gov.cn'}"
+               target="_blank" rel="noopener"
+               th:text="${theme.config.record.icpRecord}">京ICP备xxxxxxxx号</a>
+        </p>
+        <p th:if="${theme.config.record?.publicSecurityRecord}" class="aiym-footer__icp aiym-footer__police">
+            <a th:if="${theme.config.record?.publicSecurityUrl}"
+               th:href="${theme.config.record.publicSecurityUrl}"
+               target="_blank" rel="noopener"
+               th:text="${theme.config.record.publicSecurityRecord}">京公网安备 xxxxxxxxxx号</a>
+            <span th:unless="${theme.config.record?.publicSecurityUrl}"
+                  th:text="${theme.config.record.publicSecurityRecord}">京公网安备 xxxxxxxxxx号</span>
+        </p>
+        <p class="aiym-footer__copy" th:utext="${theme.config.record?.copyrightText} ?: '&copy; ' + ${#temporals.format(#temporals.createNow(), 'yyyy')} + ' ' + ${site.title} + ' · All Rights Reserved'">&copy; 2025 AIYM · All Rights Reserved</p>
+    </div>
+</footer>
+
+</html>

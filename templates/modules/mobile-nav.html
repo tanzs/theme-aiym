@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<!-- 移动端侧滑菜单 -->
+<div th:fragment="mobile-menu" class="mobile-menu hide-desktop" data-mobile-menu id="mobile-menu" role="dialog" aria-label="移动端菜单">
+    <div class="mobile-menu-content">
+        <div class="mobile-menu-section">
+            <h3 class="mobile-menu-title">导航</h3>
+            <nav class="mobile-menu-list">
+                <th:block th:with="menu = ${theme.config.basic?.mainMenu != null and theme.config.basic.mainMenu != '' ? menuFinder.getByName(theme.config.basic.mainMenu) : menuFinder.getPrimary()}">
+                    <th:block th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}">
+                        <a th:each="item : ${menu.menuItems}"
+                           th:href="@{${item.status.href}}"
+                           th:target="${item.spec.target?.value}"
+                           th:classappend="${#annotations.contains(item, 'animation') ? 'animated-hover' : ''}"
+                           class="mobile-menu-link">
+                            <span th:if="${#annotations.contains(item, 'icon') and #annotations.get(item, 'icon') != ''}"
+                                  class="iconify"
+                                  th:attr="data-icon=${#annotations.get(item, 'icon')}"
+                                  style="width:18px;height:18px;vertical-align:-0.15em;"></span>
+                            <span th:text="${item.status.displayName}">菜单</span>
+                        </a>
+                    </th:block>
+                    <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
+                        <a href="/" class="mobile-menu-link">首页</a>
+                        <a href="/archives" class="mobile-menu-link">归档</a>
+                        <a href="/categories" class="mobile-menu-link">分类</a>
+                        <a href="/tags" class="mobile-menu-link">标签</a>
+                    </th:block>
+                </th:block>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- 移动端底部导航 - 动态读取后台菜单 -->
+<nav th:fragment="mobile-nav" class="mobile-nav hide-desktop" aria-label="移动端底部导航">
+    <th:block th:with="menu = ${theme.config.basic?.mainMenu != null and theme.config.basic.mainMenu != '' ? menuFinder.getByName(theme.config.basic.mainMenu) : menuFinder.getPrimary()}">
+        <th:block th:if="${menu != null and not #lists.isEmpty(menu.menuItems)}">
+            <a th:each="item : ${menu.menuItems}"
+               th:href="@{${item.status.href}}"
+               th:target="${item.spec.target?.value}"
+               class="mobile-nav-item"
+               data-mobile-nav-link
+               th:attr="data-nav=${item.status.displayName}">
+                <span class="mobile-nav-icon">
+                    <span th:if="${#annotations.contains(item, 'icon') and #annotations.get(item, 'icon') != ''}"
+                          class="iconify"
+                          th:attr="data-icon=${#annotations.get(item, 'icon')}"
+                          style="width:22px;height:22px;vertical-align:-0.15em;"></span>
+                    <svg th:unless="${#annotations.contains(item, 'icon') and #annotations.get(item, 'icon') != ''}"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                </span>
+                <span class="mobile-nav-label" th:text="${item.status.displayName}">菜单</span>
+            </a>
+        </th:block>
+        <th:block th:if="${menu == null or #lists.isEmpty(menu.menuItems)}">
+            <a href="/" class="mobile-nav-item" data-mobile-nav-link data-nav="home">
+                <span class="mobile-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+                <span class="mobile-nav-label">首页</span>
+            </a>
+            <a href="/archives" class="mobile-nav-item" data-mobile-nav-link data-nav="archives">
+                <span class="mobile-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></span>
+                <span class="mobile-nav-label">归档</span>
+            </a>
+            <a href="/categories" class="mobile-nav-item" data-mobile-nav-link data-nav="category">
+                <span class="mobile-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+                <span class="mobile-nav-label">分类</span>
+            </a>
+            <a href="/tags" class="mobile-nav-item" data-mobile-nav-link data-nav="tags">
+                <span class="mobile-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+                <span class="mobile-nav-label">标签</span>
+            </a>
+        </th:block>
+    </th:block>
+</nav>
+
+</html>

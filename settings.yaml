@@ -1,0 +1,381 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: theme-aiym
+spec:
+  forms:
+    - group: content
+      label: "内容设置"
+      formSchema:
+        - $formkit: categorySelect
+          name: blogCategory
+          label: "博客文章分类"
+          help: "首页文章列表只显示该分类及其下级分类的文章。不选择则显示全部。"
+          multiple: false
+        - $formkit: categorySelect
+          name: resourceCategory
+          label: "资源分类"
+          help: "资源页面显示该分类及其下级分类的内容。不选择则不显示资源。"
+          multiple: false
+        - $formkit: number
+          name: postsPerPage
+          label: "每页文章数"
+          value: 12
+          min: 1
+          max: 50
+        - $formkit: number
+          name: hotPostCount
+          label: "热门文章数"
+          value: 6
+          min: 1
+          max: 20
+        - $formkit: tag
+          name: photoGroups
+          label: "随机封面图库分组"
+          help: "填写图库分组名称（多个用回车分隔）。首页无封面的文章将从这些分组中随机取图。留空则使用全部图库。"
+          placeholder: "输入分组名称后回车"
+        - $formkit: number
+          name: recommendResourceCount
+          label: "推荐资源数"
+          value: 6
+          min: 1
+          max: 20
+
+    - group: search
+      label: "搜索设置"
+      formSchema:
+        - $formkit: tag
+          name: hotKeywords
+          label: "热门搜索关键词"
+          help: "输入关键词后回车，显示在搜索弹窗的热门搜索区域"
+          placeholder: "输入关键词后回车"
+        - $formkit: textarea
+          name: hotKeywordsText
+          label: "热门搜索（备用）"
+          help: "如果 tag 类型不可用，用这个 textarea 输入关键词，每行一个"
+          rows: 3
+          placeholder: "NAS&#10;Docker&#10;fnOS&#10;Linux"
+
+    - group: appearance
+      label: "外观设置"
+      formSchema:
+        - $formkit: color
+          name: brandColor
+          label: "主题色（主色）"
+          help: "按钮、链接、激活状态等"
+          value: "#42A5F5"
+        - $formkit: color
+          name: brandColorHover
+          label: "主题色（深色）"
+          help: "按钮悬停、链接悬停等"
+          value: "#1E88E5"
+        - $formkit: color
+          name: brandColorLight
+          label: "主题色（浅色背景）"
+          help: "标签背景、表格表头、高亮等"
+          value: "#E3F2FD"
+        - $formkit: select
+          name: defaultMode
+          label: "默认模式"
+          value: "system"
+          options:
+            - label: "跟随系统"
+              value: "system"
+            - label: "浅色模式"
+              value: "light"
+            - label: "深色模式"
+              value: "dark"
+        - $formkit: switch
+          name: showThemeToggle
+          label: "显示主题切换按钮"
+          value: true
+        - $formkit: switch
+          name: enableAnimation
+          label: "启用动画"
+          value: true
+
+    - group: resource
+      label: "资源设置"
+      formSchema:
+        - $formkit: text
+          name: downloadButtonText
+          label: "下载按钮文字"
+          value: "立即下载"
+        - $formkit: text
+          name: noDownloadTip
+          label: "无下载提示"
+          value: "暂未提供下载地址"
+        - $formkit: textarea
+          name: supplementContent
+          label: "补充说明（支持 Markdown）"
+          help: "在文章末尾显示，支持 Markdown 格式，如 # 使用说明、# 免责声明"
+          rows: 8
+          value: "# 使用说明\n\n1. 请从官方渠道下载软件\n2. 安装前请关闭杀毒软件\n3. 如有问题请查看官方文档\n\n# 免责声明\n\n本页面提供的资源链接均来自公开网络，仅供学习与参考使用。"
+
+    - group: seo
+      label: "SEO 设置"
+      formSchema:
+        - $formkit: textarea
+          name: siteDescription
+          label: "站点描述"
+          rows: 2
+          help: "留空时使用 Halo 系统设置中的站点描述"
+        - $formkit: text
+          name: keywords
+          label: "站点关键词"
+          placeholder: "用英文逗号分隔"
+
+    - group: about
+      label: "关于页面"
+      formSchema:
+        - $formkit: textarea
+          name: aboutContent
+          label: "页面内容（HTML）"
+          help: "关于页面的主体内容，支持 HTML 标签"
+          rows: 12
+          value: "<h2>👋 你好呀</h2>\n<p>我是 <strong>AIYM-启梦</strong>，一个轻量级的技术资源分享平台。</p>\n<p>这里汇集了开发工具、技术教程、NAS 玩法等内容，致力于让好工具和好知识被轻松发现。</p>\n\n<h2>✨ 我在做什么</h2>\n<ul>\n<li>🧰 精选开发工具与实用资源</li>\n<li>📚 整理技术教程与学习路线</li>\n<li>🖥️ 分享 NAS 搭建与折腾经验</li>\n<li>🔧 在线小工具，随用随走</li>\n</ul>\n\n<h2>💬 一句话介绍</h2>\n<blockquote>好的工具值得被发现，好的知识值得被分享。</blockquote>\n\n<h2>🛠️ 技术栈</h2>\n<p>本站基于 <strong>Halo 2.x</strong> 构建，主题和前端均为手工打造，追求简洁与实用。</p>"
+        - $formkit: repeater
+          name: aboutLinks
+          label: "联系方式"
+          children:
+            - $formkit: text
+              name: icon
+              label: "图标（Iconify）"
+              help: "如 ri-wechat-line、ri-github-line"
+            - $formkit: text
+              name: label
+              label: "标签"
+            - $formkit: text
+              name: value
+              label: "值"
+            - $formkit: select
+              name: action
+              label: "点击操作"
+              value: "copy"
+              options:
+                - label: "复制"
+                  value: "copy"
+                - label: "打开链接"
+                  value: "link"
+                - label: "发邮件"
+                  value: "mail"
+            - $formkit: text
+              name: qr
+              if: "$value.action == 'copy'"
+              label: "二维码图片 URL"
+              help: "点击后弹窗展示二维码，留空则直接复制"
+
+    - group: toolbox
+      label: "工具箱设置"
+      formSchema:
+        - $formkit: tag
+          name: toolboxCategories
+          label: "工具分类"
+          help: "输入分类名称后回车，工具可选择已有分类或输入新分类自动添加"
+          placeholder: "输入分类名称后回车"
+          value:
+            - 编码
+            - 转换
+            - 生成
+            - 开发
+            - 文本
+        - $formkit: repeater
+          name: toolboxItems
+          label: "工具列表"
+          children:
+            - $formkit: text
+              name: name
+              label: "工具名称"
+              validation: required
+            - $formkit: text
+              name: desc
+              label: "简短描述"
+            - $formkit: text
+              name: icon
+              label: "图标 (Iconify)"
+              help: "如 ri-braces-line、ri-code-s-slash-line"
+            - $formkit: color
+              name: color
+              label: "图标颜色"
+              value: "#9b7ed8"
+            - $formkit: color
+              name: bg
+              label: "图标背景色"
+              value: "#f3eefa"
+            - $formkit: text
+              name: path
+              label: "路径"
+              help: "内部页面路径如 /tools/json 或外链 https://..."
+              validation: required
+            - $formkit: select
+              name: target
+              label: "打开方式"
+              value: "_self"
+              options:
+                - label: "当前窗口"
+                  value: "_self"
+                - label: "新窗口打开"
+                  value: "_blank"
+            - $formkit: text
+              name: cat
+              label: "分类"
+              help: "输入已有分类名称，或输入新分类名自动添加到分类列表"
+            - $formkit: text
+              name: badge
+              label: "标签"
+              help: "可选，如：免费、hot、新"
+          value:
+            - name: "JSON 格式化"
+              desc: "JSON 校验、压缩、转义"
+              icon: "ri-braces-line"
+              color: "#4caf50"
+              bg: "#e8f5e9"
+              path: "/tools/json"
+              target: "_self"
+              cat: "开发"
+            - name: "Base64"
+              desc: "编解码 Base64 文本"
+              icon: "ri-code-s-slash-line"
+              color: "#ff9800"
+              bg: "#fff3e0"
+              path: "/tools/base64"
+              target: "_self"
+              cat: "编码"
+            - name: "URL 编解码"
+              desc: "URL encode / decode"
+              icon: "ri-link"
+              color: "#2196f3"
+              bg: "#e3f2fd"
+              path: "/tools/url"
+              target: "_self"
+              cat: "编码"
+            - name: "时间戳"
+              desc: "Unix 时间戳互转"
+              icon: "ri-time-line"
+              color: "#03a9f4"
+              bg: "#e1f5fe"
+              path: "/tools/timestamp"
+              target: "_self"
+              cat: "转换"
+            - name: "正则测试"
+              desc: "在线正则表达式测试"
+              icon: "ri-braces-line"
+              color: "#e91e63"
+              bg: "#fce4ec"
+              path: "/tools/regex"
+              target: "_self"
+              cat: "开发"
+            - name: "颜色转换"
+              desc: "HEX / RGB / HSL 转换"
+              icon: "ri-palette-line"
+              color: "#9c27b0"
+              bg: "#f3e5f5"
+              path: "/tools/color"
+              target: "_self"
+              cat: "转换"
+            - name: "二维码"
+              desc: "生成 / 解析 / Logo / 批量"
+              icon: "ri-qr-code-line"
+              color: "#4caf50"
+              bg: "#e8f5e9"
+              path: "/tools/qrcode"
+              target: "_self"
+              cat: "生成"
+            - name: "ID 生成器"
+              desc: "UUID / Nano ID / 短ID"
+              icon: "ri-key-2-line"
+              color: "#9b7ed8"
+              bg: "#f3e5f5"
+              path: "/tools/uuid"
+              target: "_self"
+              cat: "生成"
+            - name: "Hash 计算"
+              desc: "MD5 / SHA1 / SHA256"
+              icon: "ri-fingerprint-line"
+              color: "#607d8b"
+              bg: "#eceff1"
+              path: "/tools/hash"
+              target: "_self"
+              cat: "开发"
+            - name: "密码生成"
+              desc: "随机安全密码生成"
+              icon: "ri-lock-password-line"
+              color: "#f44336"
+              bg: "#ffebee"
+              path: "/tools/password"
+              target: "_self"
+              cat: "生成"
+            - name: "文本对比"
+              desc: "Diff 文本差异对比"
+              icon: "ri-file-list-line"
+              color: "#009688"
+              bg: "#e0f2f1"
+              path: "/tools/diff"
+              target: "_self"
+              cat: "文本"
+            - name: "Markdown"
+              desc: "Markdown 实时预览"
+              icon: "ri-markdown-line"
+              color: "#333333"
+              bg: "#f5f5f5"
+              path: "/tools/markdown"
+              target: "_self"
+              cat: "文本"
+            - name: "Cron 表达式"
+              desc: "Cron 定时任务解析"
+              icon: "ri-calendar-schedule-line"
+              color: "#795548"
+              bg: "#efebe9"
+              path: "/tools/cron"
+              target: "_self"
+              cat: "开发"
+            - name: "JWT 工具"
+              desc: "JWT Decoder / Encoder"
+              icon: "ri-shield-keyhole-line"
+              color: "#ff5722"
+              bg: "#fbe9e7"
+              path: "/tools/jwt"
+              target: "_self"
+              cat: "开发"
+            - name: "大小写转换"
+              desc: "驼峰/蛇形/标题大小写"
+              icon: "ri-text"
+              color: "#7c5fc4"
+              bg: "#f0ebf8"
+              path: "/tools/case"
+              target: "_self"
+              cat: "文本"
+            - name: "进制转换"
+              desc: "二 / 八 / 十 / 十六进制"
+              icon: "ri-calculator-line"
+              color: "#3f51b5"
+              bg: "#e8eaf6"
+              path: "/tools/base"
+              target: "_self"
+              cat: "转换"
+
+    - group: record
+      label: "备案信息"
+      formSchema:
+        - $formkit: text
+          name: copyrightText
+          label: "版权文字"
+          help: "留空则默认显示 © 当前年份 站点名称 · All Rights Reserved"
+          placeholder: "如 © 2025 AIYM · All Rights Reserved"
+        - $formkit: text
+          name: icpRecord
+          label: "ICP 备案号"
+          placeholder: "京ICP备xxxxxxxx号"
+        - $formkit: text
+          name: icpRecordUrl
+          label: "ICP 备案链接"
+          placeholder: "https://beian.miit.gov.cn"
+          value: "https://beian.miit.gov.cn"
+        - $formkit: text
+          name: publicSecurityRecord
+          label: "公安备案号"
+          placeholder: "京公网安备 xxxxxxxxxx号"
+        - $formkit: text
+          name: publicSecurityUrl
+          label: "公安备案链接"
+          placeholder: "https://www.beian.gov.cn/portal/registerSystemInfo"

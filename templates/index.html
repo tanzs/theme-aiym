@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html th:replace="~{modules/layout :: html(head = null, content = ~{::content})}"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="zh-CN">
+
+<th:block th:fragment="content">
+    <div class="home"
+         th:with="blogCategoryName=${theme.config.content?.blogCategory},
+                  hasBlogCategory=${blogCategoryName != null and blogCategoryName != ''},
+                  hotCount=${theme.config.content?.hotPostCount ?: 5},
+                  perPage=${theme.config.content?.postsPerPage ?: 10},
+                  fallbackCover=${'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 675%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2342A5F5%22/%3E%3Cstop offset=%221%22 stop-color=%22%231E88E5%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%221200%22 height=%22675%22 fill=%22url(%23g)%22/%3E%3C/svg%3E'}">
+
+        <!-- ===== 有博客分类时 ===== -->
+        <th:block th:if="${hasBlogCategory}">
+            <th:block th:with="blogRoot=${categoryFinder.getByName(blogCategoryName)}">
+                <th:block th:if="${blogRoot != null}"
+                          th:with="childCategories=${blogRoot.spec.children != null and !#lists.isEmpty(blogRoot.spec.children) ? categoryFinder.getByNames(blogRoot.spec.children) : categoryFinder.listAll()}">
+
+                    <!-- 分类筛选（置顶 sticky） -->
+                    <section class="category-filter" th:if="${not #lists.isEmpty(childCategories)}">
+                        <div class="category-scroll">
+                            <button type="button" class="category-pill category-pill--active" data-category="">全部</button>
+                            <button th:each="cat : ${childCategories}" type="button"
+                                    th:attr="data-category=${cat.metadata.name}"
+                                    class="category-pill"
+                                    th:text="${cat.spec.displayName}">分类</button>
+                        </div>
+                    </section>
+
+                    <!-- 热门文章横滑（JS 动态加载） -->
+                    <section class="hot-section" id="hot-section">
+                        <div class="section-header">
+                            <h2 class="section-title">热门文章</h2>
+                            <span class="section-badge">HOT</span>
+                        </div>
+                        <div class="hot-scroll" id="hot-scroll"></div>
+                    </section>
+
+                    <!-- 最新文章（JS 动态加载） -->
+                    <section class="article-section">
+                        <div class="section-header">
+                            <h2 class="section-title">最新文章</h2>
+                        </div>
+                        <div class="article-grid" id="article-grid"></div>
+                        <div id="load-more-sentinel" style="height:1px;"></div>
+                        <div id="load-more-hint" style="display:none;" class="load-more-hint">
+                            <span class="load-more-spinner"></span>
+                            <span>加载中...</span>
+                        </div>
+                    </section>
+                </th:block>
+            </th:block>
+        </th:block>
+
+        <div th:unless="${hasBlogCategory}">
+            <th:block th:with="allHotPosts=${postFinder.list({page: 1, size: hotCount, sort: {'stats.visit,desc', 'spec.publishTime,desc'}})},
+                               allLatest=${postFinder.list({page: 1, size: perPage, sort: {'spec.publishTime,desc'}})}">
+
+                <section class="hot-section" th:if="${not #lists.isEmpty(allHotPosts?.items)}">
+                    <div class="section-header">
+                        <h2 class="section-title">热门文章</h2>
+                        <span class="section-badge">HOT</span>
+                    </div>
+                    <div class="hot-scroll">
+                        <a th:each="post, iter : ${allHotPosts.items}"
+                           th:href="@{${post.status?.permalink}}"
+                           class="hot-card" th:attr="data-href=${post.status?.permalink}">
+                            <div class="hot-cover">
+                                <img th:src="${post.spec.cover ?: fallbackCover}"
+                                     th:alt="${post.spec.title}" loading="lazy" class="hot-cover-img">
+                                <span class="hot-rank" th:text="'#' + ${iter.count}">#1</span>
+                            </div>
+                            <div class="hot-body">
+                                <h3 class="hot-title" th:text="${post.spec.title}">标题</h3>
+                                <div class="hot-meta">
+                                    <span class="hot-stat">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        <span th:text="${post.stats?.visit ?: 0}">0</span>
+                                    </span>
+                                    <span class="hot-dot">·</span>
+                                    <span class="hot-stat">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                        <span th:text="${post.stats?.comment ?: 0}">0</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <section class="category-filter">
+                    <div class="category-scroll">
+                        <button type="button" class="category-pill category-pill--active" data-category="">全部</button>
+                        <th:block th:each="cat : ${categoryFinder.listAll()}">
+                            <button type="button" th:attr="data-category=${cat.metadata.name}" class="category-pill"
+                               th:text="${cat.spec.displayName}">分类</button>
+                        </th:block>
+                    </div>
+                </section>
+
+                <section class="article-section">
+                    <div class="section-header">
+                        <h2 class="section-title">最新文章</h2>
+                    </div>
+                    <div class="article-grid" id="article-grid">
+                        <th:block th:each="post : ${allLatest.items}">
+                            <a th:href="@{${post.status?.permalink}}" class="article-card" th:attr="data-href=${post.status?.permalink}">
+                                <div class="article-card__cover" th:if="${post.spec.cover}">
+                                    <img th:src="${post.spec.cover}" th:alt="${post.spec.title}" loading="lazy">
+                                </div>
+                                <div class="article-card__cover article-card__cover--letter" th:unless="${post.spec.cover}">
+                                    <span th:text="${#strings.substring(post.spec.title, 0, 1)}">A</span>
+                                </div>
+                                <div class="article-card__body">
+                                    <div class="article-card__tags" th:if="${not #lists.isEmpty(post.tags)}">
+                                        <span th:each="tag : ${post.tags}" th:if="${tagStat.index < 3}"
+                                              class="article-card__tag"
+                                              th:text="${tag.spec.displayName}">标签</span>
+                                    </div>
+                                    <h3 class="article-card__title" th:text="${post.spec.title}">标题</h3>
+                                    <p class="article-card__excerpt" th:if="${post.status?.excerpt}"
+                                       th:text="${#strings.abbreviate(#strings.escapeXml(post.status.excerpt), 80)}">摘要</p>
+                                    <div class="article-card__footer">
+                                        <div class="article-card__stats">
+                                            <span class="article-card__stat">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                <span th:text="${post.stats?.visit ?: 0}">0</span>
+                                            </span>
+                                            <span class="article-card__stat">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                                <span th:text="${post.stats?.comment ?: 0}">0</span>
+                                            </span>
+                                        </div>
+                                        <time class="article-card__time"
+                                              th:text="${#temporals.format(post.spec.publishTime, 'yyyy-MM-dd')}">2024-01-01</time>
+                                    </div>
+                                </div>
+                            </a>
+                        </th:block>
+                    </div>
+                    <div id="load-more-sentinel" style="height:1px;"></div>
+                    <div id="load-more-hint" style="display:none;" class="load-more-hint">
+                        <span class="load-more-spinner"></span>
+                        <span>加载中...</span>
+                    </div>
+                </section>
+            </th:block>
+        </div>
+    </div>
+
+    <style>
+    /* === 热门文章横滑（miniapp 精确对齐） === */
+    .hot-section { margin-bottom: 4px; }
+    .section-header { display: flex; align-items: center; gap: 10px; padding: 14px 0 8px; }
+    .section-title { font-size: 17px; font-weight: 700; color: var(--color-text-primary); position: relative; padding-left: 12px; }
+    .section-title::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 16px; border-radius: 2px; background: linear-gradient(180deg, var(--color-brand), var(--color-brand-hover)); }
+    .section-badge { font-size: 9px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ff6b35, #e65100); padding: 2px 8px; border-radius: 8px; letter-spacing: 1px; }
+    .hot-scroll {
+        display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden;
+        padding-bottom: 8px; scroll-snap-type: x proximity;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch; scrollbar-width: none; cursor: grab;
+        touch-action: pan-x pan-y; overscroll-behavior-x: contain;
+        transform: translateZ(0); will-change: scroll-position;
+    }
+    .hot-scroll.is-dragging { cursor: grabbing; scroll-snap-type: none; scroll-behavior: auto; }
+    .hot-scroll::-webkit-scrollbar { display: none; }
+    .hot-card {
+        flex-shrink: 0; width: 250px; height: 100px;
+        background: var(--color-bg-secondary); border-radius: 14px; overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; flex-direction: row;
+        scroll-snap-align: start; text-decoration: none; color: inherit;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .hot-card:active { transform: scale(0.97); }
+    .hot-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .hot-cover { width: 100px; min-height: 100px; position: relative; flex-shrink: 0; overflow: hidden; }
+    .hot-cover-img { width: 100%; height: 100%; object-fit: cover; }
+    .hot-cover--letter {
+        width: 100px; min-height: 100px; flex-shrink: 0;
+        background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center;
+    }
+    .hot-cover--letter span { font-size: 28px; font-weight: 800; color: var(--color-text-muted); }
+    .hot-rank { position: absolute; top: 6px; left: 6px; font-size: 10px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ff6b35, #e65100); padding: 1px 6px; border-radius: 6px; }
+    .hot-body { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+    .hot-title { font-size: 14px; font-weight: 600; color: var(--color-text-primary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
+    .hot-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--color-text-muted); }
+    .hot-stat { display: inline-flex; align-items: center; gap: 3px; }
+    .hot-dot { opacity: 0.4; }
+
+    /* === 分类筛选增强（基础在 layout.html） === */
+    .category-filter { text-align: left !important; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    [data-theme="dark"] .category-filter { border-bottom-color: rgba(255,255,255,0.04); }
+    .category-filter::-webkit-scrollbar { display: none; }
+    .category-scroll { text-align: left !important; }
+    .category-pill:active { transform: scale(0.95); }
+    .category-pill:hover:not(.category-pill--active) { border-color: var(--color-brand); color: var(--color-brand); box-shadow: 0 2px 8px rgba(var(--color-brand-rgb),0.15); }
+    .category-pill--active { box-shadow: 0 2px 8px rgba(var(--color-brand-rgb),0.3); }
+
+    /* === 最新文章大卡片（miniapp 精确对齐） === */
+    .article-section { padding: 0; }
+    .article-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .article-card {
+        display: flex; flex-direction: column;
+        background: var(--color-bg-secondary); border-radius: 14px; overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-decoration: none; color: inherit;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .article-card:active { transform: scale(0.98); }
+    .article-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .article-card__cover { width: 100%; height: 180px; overflow: hidden; }
+    .article-card__cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+    .article-card__cover--letter {
+        width: 100%; height: 180px; display: flex; align-items: center; justify-content: center;
+        background: var(--color-bg-secondary);
+    }
+    .article-card__cover--letter span {
+        font-size: 48px; font-weight: 800; color: var(--color-text-muted);
+    }
+    .article-card:hover .article-card__cover img { transform: scale(1.03); }
+    .article-card__body { padding: 14px 16px 16px; display: flex; flex-direction: column; flex: 1; }
+    .article-card__tags { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .article-card__tag { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: rgba(var(--color-brand-rgb, 66, 165, 245), 0.08); color: var(--color-brand); }
+    .article-card__title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .article-card__excerpt { font-size: 13px; color: var(--color-text-muted); line-height: 1.7; margin-top: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .article-card__footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 11px; color: var(--color-text-muted); }
+    .article-card__stats { display: flex; align-items: center; gap: 14px; }
+    .article-card__stat { display: inline-flex; align-items: center; gap: 5px; }
+
+    /* === 加载更多 === */
+    .load-more-hint { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px 0; font-size: 13px; color: var(--color-text-muted); }
+    .load-more-spinner { width: 16px; height: 16px; border: 2px solid var(--color-border-primary); border-top-color: var(--color-brand); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .load-more-end { text-align: center; padding: 16px 0; font-size: 12px; color: var(--color-text-muted); opacity: 0.6; }
+    /* === 骨架屏 shimmer 动画 === */
+    @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
+    .skeleton-bar, .skeleton-tag, .skeleton-cover-block {
+        background: linear-gradient(90deg, var(--color-border-primary) 0%, color-mix(in srgb, var(--color-border-primary) 97%, white) 40%, var(--color-border-primary) 80%);
+        background-size: 200px 100%; animation: shimmer 1.8s ease-in-out infinite; border-radius: 6px;
+    }
+    .skeleton-hot-card, .skeleton-article-card { pointer-events: none; animation: none; }
+    .skeleton-badge { opacity: 0.55; }
+    .skeleton-rank { opacity: 0.75; }
+    .skeleton-tag { width: 42px; height: 18px; border-radius: 7px; }
+    .skeleton-tag.short { width: 34px; }
+    .skeleton-cover-block { width: 100%; height: 100%; border-radius: 0; }
+    .skeleton-footer { margin-top: 14px; }
+    .skeleton-list-title { padding: 14px 0 8px; grid-column: 1 / -1; }
+
+    /* 页脚 logo/brand 样式由 layout.html 统一定义 */
+
+    /* ===== 移动端适配（与 miniapp 一致） ===== */
+    @media (max-width: 767px) {
+        .container { padding: 0 !important; }
+        .home { padding: 0 8px !important; box-sizing: border-box; }
+        .home-overview, .hot-posts-section, .category-filter, .latest-posts, .home-empty-wrap { padding-left: 0 !important; padding-right: 0 !important; max-width: 100% !important; }
+        .header-inner { padding: 0 12px; }
+        .hot-section { margin-bottom: 8px; }
+        .hot-section .hot-grid { gap: 12px; padding-bottom: 0; }
+        .hot-card { width: 250px; height: 100px; margin-bottom: 0; }
+        .hot-cover { width: 100px; min-height: 100px; }
+        .hot-title { font-size: 13px; -webkit-line-clamp: 2; }
+        .hot-body { padding: 10px 12px; }
+        .hot-meta { font-size: 10px; gap: 6px; }
+        .section-header { padding: 16px 0 10px; gap: 10px; }
+        .section-title { font-size: 16px; }
+        .hot-section { max-width: none !important; }
+        .article-grid { grid-template-columns: 1fr; gap: 10px; max-width: none !important; }
+        .article-card { margin-bottom: 8px; }
+        .article-card__cover { height: 160px; }
+        .article-card__cover--letter { height: 160px; }
+        .article-card__cover--letter span { font-size: 40px; }
+        .article-card__body { padding: 10px 12px 12px; }
+        .article-card__title { font-size: 15px; }
+        .article-card__excerpt { font-size: 12px; margin-top: 6px; }
+        .article-card__footer { font-size: 10px; margin-top: 8px; }
+        .category-filter { position: sticky; top: 48px; max-width: none !important; margin-left: -8px !important; margin-right: -8px !important; width: calc(100% + 16px) !important; padding: 4px 8px !important; }
+        .category-scroll { padding: 0; gap: 6px; }
+        .category-pill { padding: 5px 14px; font-size: 12px; }
+        .site-content { padding-bottom: 50px; }
+        .header-greeting { display: none; }
+        .header-user__text { display: none; }
+        .header-user__trigger { padding: 5px 8px 5px 5px; }
+    }
+
+    /* ===== 桌面端适配 ===== */
+    @media (min-width: 768px) {
+        .hot-card { width: 300px; height: 140px; }
+        .hot-cover { width: 120px; height: 140px; min-height: 0; }
+        .hot-title { font-size: 15px; -webkit-line-clamp: 3; }
+        .article-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    }
+
+    </style>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    var _photoUrls = [];
+    (function() {
+        var allPhotos = /*[[${#lists.toList(photoFinder.listAll())}]]*/ [];
+        for (var i = 0; i < allPhotos.length; i++) {
+            var p = allPhotos[i];
+            if (p && p.spec && p.spec.url) _photoUrls.push(p.spec.url);
+        }
+    })();
+    /*]]>*/
+    </script>
+
+    <script th:inline="javascript">
+    (function() {
+        var currentPage = 1;
+        var pageSize = /*[[${theme.config.content?.postsPerPage ?: 10}]]*/ 10;
+        var hotCount = /*[[${theme.config.content?.hotPostCount ?: 5}]]*/ 5;
+        var blogCategory = /*[[${theme.config.content?.blogCategory ?: ''}]]*/ '';
+        var photoGroups = /*[[${theme.config.content?.photoGroups ?: ''}]]*/ '';
+        var groupNames = photoGroups ? photoGroups.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
+        var photoUrls = _photoUrls;
+
+        // SHA-256 hash (取前4字节做 int，分布均匀)
+        function sha256Hash(str) {
+            // 简化版: 用 crypto.subtle 同步不行，用 mul32 模拟
+            var h = 0;
+            for (var i = 0; i < str.length; i++) {
+                h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+            }
+            return Math.abs(h);
+        }
+
+        // 获取随机封面: 基于文章名做确定性选取，localStorage 缓存2小时
+        function getRandomCover(seed) {
+            if (!photoUrls || photoUrls.length === 0) return '';
+            var cacheKey = 'cover:' + seed;
+            var cacheTimeKey = cacheKey + ':t';
+            try {
+                var cached = localStorage.getItem(cacheKey);
+                var cachedTime = localStorage.getItem(cacheTimeKey);
+                if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < 7200000) {
+                    return cached;
+                }
+            } catch(e) {}
+            var idx = sha256Hash(seed) % photoUrls.length;
+            var url = photoUrls[idx];
+            try {
+                localStorage.setItem(cacheKey, url);
+                localStorage.setItem(cacheTimeKey, String(Date.now()));
+            } catch(e) {}
+            return url;
+        }
+        var noMore = false;
+        var currentCategory = '';
+        var sentinel = document.getElementById('load-more-sentinel');
+        var hint = document.getElementById('load-more-hint');
+        var grid = document.getElementById('article-grid');
+        if (!sentinel || !grid) return;
+
+        /* 构建热门卡片 HTML */
+        function buildHotCard(post, rank) {
+            if (!post.status || !post.status.permalink) return null;
+            var cover = (post.spec && post.spec.cover) ? post.spec.cover : '';
+            var title = (post.spec && post.spec.title) ? post.spec.title : '';
+            var visit = (post.stats && post.stats.visit) ? post.stats.visit : 0;
+            var comment = (post.stats && post.stats.comment) ? post.stats.comment : 0;
+            var fallbackCover = getRandomCover(post.metadata.name);
+            var card = document.createElement('a');
+            card.href = post.status.permalink;
+            card.className = 'hot-card';
+            card.innerHTML = '<div class="hot-cover">' + (cover ? '<img src="' + cover + '" alt="' + title + '" loading="lazy" class="hot-cover-img">' : (fallbackCover ? '<img src="' + fallbackCover + '" alt="' + title + '" loading="lazy" class="hot-cover-img">' : '<div class="hot-cover--letter"><span>' + (title.charAt(0) || 'A') + '</span></div>')) + '<span class="hot-rank">#' + rank + '</span></div><div class="hot-body"><h3 class="hot-title">' + title + '</h3><div class="hot-meta"><span class="hot-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>' + visit + '</span></span><span class="hot-dot">·</span><span class="hot-stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + comment + '</span></span></div></div>';
+            return card;
+        }
+
+        /* 构建卡片 HTML */
+        function buildCard(post) {
+            if (!post.status || !post.status.permalink) return null;
+            var cover = (post.spec && post.spec.cover) ? post.spec.cover : '';
+            var title = (post.spec && post.spec.title) ? post.spec.title : '';
+            var excerpt = (post.status && post.status.excerpt) ? post.status.excerpt.substring(0, 80) : '';
+            var visit = (post.stats && post.stats.visit) ? post.stats.visit : 0;
+            var comment = (post.stats && post.stats.comment) ? post.stats.comment : 0;
+            var date = (post.spec && post.spec.publishTime) ? post.spec.publishTime.substring(0, 10) : '';
+            var tagsHtml = '';
+            if (post.tags && post.tags.length > 0) {
+                post.tags.slice(0, 3).forEach(function(tag) {
+                    if (tag.spec && tag.spec.displayName) tagsHtml += '<span class="article-card__tag">' + tag.spec.displayName + '</span>';
+                });
+            }
+            var randomCover = getRandomCover(post.metadata.name);
+            var coverHtml = cover ? '<div class="article-card__cover"><img src="' + cover + '" alt="' + title + '" loading="lazy"></div>' : (randomCover ? '<div class="article-card__cover"><img src="' + randomCover + '" alt="' + title + '" loading="lazy"></div>' : '<div class="article-card__cover article-card__cover--letter"><span>' + (title.charAt(0) || 'A') + '</span></div>');
+            var card = document.createElement('a');
+            card.href = post.status.permalink;
+            card.className = 'article-card';
+            card.innerHTML = coverHtml + '<div class="article-card__body">' + (tagsHtml ? '<div class="article-card__tags">' + tagsHtml + '</div>' : '') + '<h3 class="article-card__title">' + title + '</h3>' + (excerpt ? '<p class="article-card__excerpt">' + excerpt + '</p>' : '') + '<div class="article-card__footer"><div class="article-card__stats"><span class="article-card__stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>' + visit + '</span></span><span class="article-card__stat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + comment + '</span></span></div><time class="article-card__time">' + date + '</time></div></div>';
+            return card;
+        }
+
+        /* 构建 API URL */
+        function buildUrl(page, category) {
+            var url = '/apis/api.content.halo.run/v1alpha1/posts?page=' + page + '&size=' + pageSize + '&sort=spec.publishTime,desc';
+            var cat = category || blogCategory;
+            if (cat) url += '&fieldSelector=spec.categories=' + cat;
+            return url;
+        }
+
+        /* 加载更多（无限滚动） */
+        function loadMore() {
+            if (loading || noMore) return;
+            loading = true;
+            hint.style.display = 'flex';
+            currentPage++;
+            fetch(buildUrl(currentPage, currentCategory), { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var items = data.items || [];
+                    if (items.length === 0) { noMore = true; hint.innerHTML = '<span class="load-more-end">— 到底啦 —</span>'; loading = false; return; }
+                    items.forEach(function(post) { var card = buildCard(post); if (card) grid.appendChild(card); });
+                    if (items.length < pageSize) { noMore = true; hint.innerHTML = '<span class="load-more-end">— 到底啦 —</span>'; }
+                    else { hint.style.display = 'none'; }
+                    loading = false;
+                })
+                .catch(function() { loading = false; hint.style.display = 'none'; });
+        }
+
+        /* 生成骨架屏 HTML */
+        function buildSkeletons() {
+            var hotHtml = '';
+            for (var i = 1; i <= 5; i++) {
+                hotHtml += '<div class="hot-card skeleton-hot-card"><div class="hot-cover"><div class="skeleton-cover-block"></div><span class="hot-rank skeleton-rank">#' + i + '</span></div><div class="hot-body"><div class="skeleton-bar" style="width:92%;height:14px;margin-bottom:7px;"></div><div class="skeleton-bar" style="width:74%;height:14px;"></div><div class="hot-meta skeleton-meta"><div class="skeleton-bar" style="width:44px;height:11px;"></div><div class="skeleton-bar" style="width:22px;height:11px;"></div></div></div></div>';
+            }
+            var cardHtml = '';
+            for (var j = 0; j < 6; j++) {
+                var hasCover = j % 2 === 0;
+                cardHtml += '<div class="article-card skeleton-article-card">';
+                if (hasCover) cardHtml += '<div class="article-card__cover"><div class="skeleton-cover-block"></div></div>';
+                cardHtml += '<div class="article-card__body"><div class="article-card__tags"><div class="skeleton-tag"></div><div class="skeleton-tag short"></div></div><div class="skeleton-bar" style="width:82%;height:16px;margin-bottom:8px;"></div><div class="skeleton-bar" style="width:96%;height:13px;margin-bottom:5px;"></div><div class="skeleton-bar" style="width:68%;height:13px;"></div><div class="article-card__footer skeleton-footer"><div class="article-card__stats"><div class="skeleton-bar" style="width:42px;height:11px;"></div><div class="skeleton-bar" style="width:24px;height:11px;"></div></div><div class="skeleton-bar" style="width:58px;height:11px;"></div></div></div></div>';
+            }
+            return { hot: hotHtml, cards: cardHtml };
+        }
+
+        /* 切换分类 */
+        function switchCategory(category, pill) {
+            if (loading) return;
+            currentCategory = category;
+            currentPage = 1;
+            noMore = false;
+            /* 更新 pill 状态 */
+            document.querySelectorAll('.category-pill').forEach(function(p) { p.classList.remove('category-pill--active'); });
+            pill.classList.add('category-pill--active');
+            /* 切换分类后滚到顶部 */
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            /* 显示骨架屏 */
+            var sk = buildSkeletons();
+            var hotSection = document.querySelector('.hot-scroll');
+            var articleSection = document.querySelector('.article-section');
+            if (hotSection) hotSection.innerHTML = sk.hot;
+            grid.innerHTML = sk.cards;
+            hint.style.display = 'none';
+            loading = true;
+            fetch(buildUrl(1, currentCategory), { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var items = data.items || [];
+                    /* 重建热门区域（按分类加载 top 文章） */
+                    var hotSection = document.querySelector('.hot-section');
+                    if (hotSection) {
+                        hotSection.style.display = '';
+                        var hotUrl = '/apis/api.content.halo.run/v1alpha1/posts?page=1&size=' + hotCount + '&sort=stats.visit,desc';
+                        if (currentCategory) hotUrl += '&fieldSelector=spec.categories=' + currentCategory;
+                        fetch(hotUrl, { credentials: 'same-origin' })
+                            .then(function(r2) { return r2.json(); })
+                            .then(function(hotData) {
+                                var hotItems = (hotData.items || []).slice(0, 5);
+                                var hs = document.querySelector('.hot-scroll');
+                                if (hs) {
+                                    if (hotItems.length === 0) {
+                                        hs.innerHTML = '<div style="padding:12px 0;color:var(--color-text-muted);font-size:13px;">该分类暂无热门文章</div>';
+                                    } else {
+                                        hs.innerHTML = '';
+                                        hotItems.forEach(function(p, idx) { var c = buildHotCard(p, idx + 1); if (c) hs.appendChild(c); });
+                                    }
+                                }
+                            });
+                    }
+                    /* 重建文章列表 */
+                    grid.innerHTML = '';
+                    items.forEach(function(post) { var card = buildCard(post); if (card) grid.appendChild(card); });
+                    if (items.length === 0) { hint.innerHTML = '<span class="load-more-end">暂无文章</span>'; hint.style.display = 'flex'; }
+                    else if (items.length < pageSize) { noMore = true; hint.innerHTML = '<span class="load-more-end">— 到底啦 —</span>'; hint.style.display = 'flex'; }
+                    else { hint.style.display = 'none'; }
+                    loading = false;
+                })
+                .catch(function() { loading = false; hint.style.display = 'none'; });
+        }
+
+        /* 绑定分类 pill 点击 */
+        document.querySelectorAll('.category-pill').forEach(function(pill) {
+            pill.addEventListener('click', function(e) {
+                e.preventDefault();
+                var cat = this.getAttribute('data-category') || '';
+                switchCategory(cat, this);
+            });
+        });
+
+        /* 初始加载：从 Content API 获取热门+最新文章 */
+        function loadInitialData() {
+            loading = true;
+            var hotUrl = '/apis/api.content.halo.run/v1alpha1/posts?page=1&size=' + hotCount + '&sort=stats.visit,desc';
+            if (blogCategory) hotUrl += '&fieldSelector=spec.categories=' + blogCategory;
+            var latestUrl = buildUrl(1, currentCategory);
+
+            /* 初始加载骨架屏 */
+            var sk = buildSkeletons();
+            var hs = document.getElementById('hot-scroll');
+            var sec = document.getElementById('hot-section');
+            if (hs) { hs.innerHTML = sk.hot; }
+            grid.innerHTML = sk.cards;
+
+            /* 加载热门 */
+            fetch(hotUrl, { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!hs) return;
+                    var items = (data.items || []).slice(0, hotCount);
+                    hs.innerHTML = '';
+                    if (items.length === 0) {
+                        if (sec) sec.style.display = 'none';
+                        return;
+                    }
+                    items.forEach(function(p, idx) { var c = buildHotCard(p, idx + 1); if (c) hs.appendChild(c); });
+                })
+                .catch(function() { if (hs) hs.innerHTML = ''; });
+
+            /* 加载最新文章 */
+            fetch(latestUrl, { credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var items = data.items || [];
+                    grid.innerHTML = '';
+                    items.forEach(function(post) { var card = buildCard(post); if (card) grid.appendChild(card); });
+                    if (items.length === 0) {
+                        hint.innerHTML = '<span class="load-more-end">暂无文章</span>';
+                        hint.style.display = 'flex';
+                    } else if (items.length < pageSize) {
+                        noMore = true;
+                        hint.innerHTML = '<span class="load-more-end">— 到底啦 —</span>';
+                        hint.style.display = 'flex';
+                    }
+                    loading = false;
+                })
+                .catch(function() { grid.innerHTML = ''; loading = false; });
+        }
+        loadInitialData();
+
+        /* 无限滚动观察器 */
+        var observer = new IntersectionObserver(function(entries) {
+            if (entries[0].isIntersecting) loadMore();
+        }, { rootMargin: '100px' });
+        observer.observe(sentinel);
+
+    })();
+
+    // 热门文章滑动（复刻 miniapp 逻辑）
+    document.querySelectorAll('.hot-scroll').forEach(function(el) {
+        // === 桌面端：鼠标拖拽（requestAnimationFrame 优化） ===
+        var mouseDown = false, mouseStartX, mouseScrollLeft, mouseMoved = false, rafId = null, latestX = 0;
+        el.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            mouseDown = true; mouseMoved = false;
+            mouseStartX = e.pageX;
+            mouseScrollLeft = el.scrollLeft;
+            el.classList.add('is-dragging');
+            el.style.userSelect = 'none';
+            e.preventDefault();
+        });
+        window.addEventListener('mousemove', function(e) {
+            if (!mouseDown) return;
+            latestX = e.pageX;
+            if (!rafId) {
+                rafId = requestAnimationFrame(function() {
+                    rafId = null;
+                    if (!mouseDown) return;
+                    var dx = latestX - mouseStartX;
+                    el.scrollLeft = mouseScrollLeft - dx;
+                    if (Math.abs(dx) > 5) mouseMoved = true;
+                });
+            }
+        });
+        window.addEventListener('mouseup', function() {
+            if (!mouseDown) return;
+            mouseDown = false;
+            el.classList.remove('is-dragging');
+            el.style.userSelect = '';
+            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        });
+        // 滑动时阻止链接跳转
+        el.addEventListener('click', function(e) {
+            if (mouseMoved) { e.preventDefault(); e.stopPropagation(); mouseMoved = false; }
+        }, true);
+
+        // === 移动端：触摸检测（复刻 miniapp） ===
+        var touchStartX = 0, touchStartY = 0, touchDragging = false;
+        el.addEventListener('touchstart', function(e) {
+            var t = e.touches[0];
+            touchStartX = t.clientX;
+            touchStartY = t.clientY;
+            touchDragging = false;
+        }, { passive: true });
+        el.addEventListener('touchmove', function(e) {
+            var t = e.touches[0];
+            var dx = Math.abs(t.clientX - touchStartX);
+            var dy = Math.abs(t.clientY - touchStartY);
+            if (dx > 8 && dx > dy) {
+                touchDragging = true;
+            }
+        }, { passive: true });
+        el.addEventListener('touchend', function() {
+            if (touchDragging) {
+                // 抑制后续 click 事件
+                el.addEventListener('click', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                }, { capture: true, once: true });
+            }
+        });
+    });
+
+    </script>
+
+        <!-- 返回顶部按钮 -->
+        <button class="back-to-top" data-back-to-top aria-label="返回顶部">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        </th:block>
+        </html>

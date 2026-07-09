@@ -1,0 +1,42 @@
+apiVersion: theme.halo.run/v1alpha1
+kind: Theme
+metadata:
+  name: theme-aiym
+spec:
+  displayName: "AIYM Halo 响应式主题"
+  description: "一个现代化的响应式 Halo 博客主题，支持浅色/深色模式、资源库、搜索和完整移动端适配"
+  author:
+    name: "AIYM"
+    website: "https://aiym.fun"
+  homepage: "https://github.com/aiym/theme-aiym"
+  logo: "https://aiym.fun/logo.png"
+  readme: ""
+  version: "1.0.1"
+  requires: ">=2.25.0"
+  settingName: "theme-aiym"
+  configMapName: "theme-aiym-config"
+  license:
+    - name: "MIT"
+      url: "https://github.com/anthropics/claude-code/blob/main/LICENSE"
+  customTemplates:
+    post:
+      - name: resource
+        description: "用于资源类型文章的模板"
+        file: post_resource.html
+    category:
+      - name: resource-category
+        description: "用于资源库分类的模板"
+        file: category_resources.html
+    page:
+      - name: search
+        description: "独立搜索页面"
+        file: page_search.html
+      - name: resources
+        description: "资源中心页面"
+        file: page_resources.html
+      - name: about
+        description: "关于页面"
+        file: page_about.html
+      - name: toolbox
+        description: "工具箱页面"
+        file: page_toolbox.html
