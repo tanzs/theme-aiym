@@ -3,21 +3,21 @@ kind: Theme
 metadata:
   name: theme-aiym
 spec:
-  displayName: "AIYM Halo 响应式主题"
-  description: "一个现代化的响应式 Halo 博客主题，支持浅色/深色模式、资源库、搜索和完整移动端适配"
+  displayName: "AIYM-启梦"
+  description: "为开发者打造的现代化 Halo 博客主题。支持深色模式、资源库、工具箱、自定义 HTML 页面、全局搜索、移动端适配，开箱即用。"
   author:
     name: "AIYM"
     website: "https://aiym.fun"
   homepage: "https://github.com/aiym/theme-aiym"
   logo: "https://aiym.fun/logo.png"
   readme: ""
-  version: "1.0.1"
+  version: "1.1.0"
   requires: ">=2.25.0"
   settingName: "theme-aiym"
   configMapName: "theme-aiym-config"
   license:
     - name: "MIT"
-      url: "https://github.com/anthropics/claude-code/blob/main/LICENSE"
+      url: "https://github.com/aiym/theme-aiym/blob/main/LICENSE"
   customTemplates:
     post:
       - name: resource
