@@ -8,7 +8,7 @@ spec:
   author:
     name: "AIYM"
     website: "https://www.aiym.fun"
-  logo: "/themes/theme-aiym/logo.png"
+  logo: "https://img.aiym.fun/halo/aiym-atnl.svg"
   homepage: "https://www.aiym.fun"
   repo: "https://github.com/tanzs/theme-aiym"
   issues: "https://github.com/tanzs/theme-aiym/issues"
