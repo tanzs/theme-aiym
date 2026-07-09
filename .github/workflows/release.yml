@@ -1,0 +1,80 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build theme zip
+        run: |
+          THEME_NAME="theme-aiym"
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          ZIP_NAME="${THEME_NAME}-v${VERSION}.zip"
+
+          # 排除不需要的文件
+          zip -r "$ZIP_NAME" . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "*.md" \
+            -x ".gitignore"
+
+          echo "📦 构建完成: $ZIP_NAME"
+          ls -lh "$ZIP_NAME"
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          cat << 'EOF' > release_notes.md
+          ## AIYM-启梦 v${VERSION}
+
+          ### ✨ 新特性
+          - 主题名称更改为 **AIYM-启梦**
+          - 新增蓝色品牌色 Logo
+          - 新增简约主题卡片图
+
+          ### 🔧 优化
+          - 更新 README 文档，面向开发者博客
+          - 完善功能特性说明和使用指南
+          - 更新 GitHub 仓库地址和 Issue 链接
+
+          ### 📦 安装
+          1. 下载下方 `theme-aiym-v*.zip` 文件
+          2. Halo 后台 → 外观 → 主题 → 安装主题
+          3. 上传 zip 文件，等待安装完成
+          4. 启用主题
+
+          ### 🔗 相关链接
+          - 主页: https://www.aiym.fun
+          - 文档: https://github.com/aiym/theme-aiym#readme
+          - 反馈: https://github.com/aiym/theme-aiym/issues
+          EOF
+
+          # 替换版本号
+          sed -i "s/\${VERSION}/${VERSION}/g" release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "AIYM-启梦 v${{ steps.version.outputs.VERSION }}"
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            theme-aiym-v*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
