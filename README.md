@@ -265,7 +265,7 @@ docker exec halo-halo-1 curl -s http://127.0.0.1:8090/
 
 ## 📄 许可证
 
-[MIT License](https://github.com/aiym/theme-aiym/blob/main/LICENSE)
+[MIT License](https://github.com/tanzs/theme-aiym/blob/main/LICENSE)
 
 ---
 
