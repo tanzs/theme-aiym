@@ -7,9 +7,11 @@ spec:
   description: "为开发者打造的现代化 Halo 博客主题。支持深色模式、资源库、工具箱、自定义 HTML 页面、全局搜索、移动端适配，开箱即用。"
   author:
     name: "AIYM"
-    website: "https://aiym.fun"
+    website: "https://www.aiym.fun"
   homepage: "https://github.com/aiym/theme-aiym"
-  logo: "https://aiym.fun/logo.png"
+  logo: "https://www.aiym.fun/logo.png"
+  source: "https://github.com/aiym/theme-aiym"
+  issueTracker: "https://github.com/aiym/theme-aiym/issues"
   readme: ""
   version: "1.1.0"
   requires: ">=2.25.0"
