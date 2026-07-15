@@ -2,7 +2,7 @@
 
 > 为开发者打造的现代化 Halo 2.x 博客主题
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Halo](https://img.shields.io/badge/Halo-2.25.0%2B-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
@@ -131,7 +131,7 @@
 | 大小写转换 | 各种大小写格式转换 | `mdi:format-letter-case` |
 | 进制转换 | 二/八/十/十六进制互转 | `mdi:code-braces` |
 
-工具**不是主题内置的**，需要手动创建自定义页面（使用 `tool-detail` 模板）。完整的 16 个工具 HTML 源码在 [tools-html/](https://github.com/tanzs/theme-aiym/tree/main/tools-html) 目录，可直接复制使用。
+工具**不是主题内置的**，需要手动创建自定义页面（使用 `tool-detail` 模板）。
 
 ## 🔧 资源文章字段
 
@@ -196,7 +196,7 @@ theme-aiym/
 
 ### 创建工具箱页面
 
-1. Halo 后台 → 内容 → 单篇页面 → 新建
+1. Halo 后台 → 页面 → 新建
 2. 标题填 `工具箱`，路径填 `tools`
 3. 模板选择 `toolbox`
 4. 保存 → 发布
@@ -210,7 +210,7 @@ theme-aiym/
 
 ### 创建工具页面
 
-工具**不是内置的**，需要手动创建自定义页面。每个工具是一个独立的 HTML 页面，使用 `tool-detail` 模板。
+工具**不是内置的**，需要手动创建自定义页面。每个工具是一个独立的 HTML 页面，使用 `tool-detail` 模板，需要工具可以自定义对应工具
 
 **步骤：**
 
@@ -293,7 +293,7 @@ function decode(){
 </script>
 ```
 
-> 💡 完整的 16 个工具 HTML 源码在 [tools-html/](https://github.com/tanzs/theme-aiym/tree/main/tools-html) 目录，可直接复制使用。
+你也可以参考上方工具列表中的图标 ID，自行编写更复杂的工具页面。
 
 ## 🔨 开发
 
