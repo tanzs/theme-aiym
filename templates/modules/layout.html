@@ -314,8 +314,16 @@
         <style th:inline="text">
             :root {
                 --color-brand: [[${theme.config.appearance?.brandColor ?: '#42A5F5'}]];
-                --color-brand-hover: [[${theme.config.appearance?.brandColorHover ?: '#1E88E5'}]];
-                --color-brand-light: [[${theme.config.appearance?.brandColorLight ?: '#E3F2FD'}]];
+                --color-brand-hover: [[${theme.config.appearance?.brandColor ?: '#42A5F5'}]];
+                --color-brand-light: [[${theme.config.appearance?.brandColor ?: '#42A5F5'}]];
+                --color-bg-primary: [[${theme.config.appearance?.bgColor ?: '#faf8f5'}]];
+                --color-bg-secondary: [[${theme.config.appearance?.contentBgColor ?: '#ffffff'}]];
+                --color-bg-tertiary: [[${theme.config.appearance?.bgColor ?: '#faf8f5'}]];
+            }
+            [data-theme="dark"] {
+                --color-bg-primary: #121212;
+                --color-bg-secondary: #1e1e1e;
+                --color-bg-tertiary: #2a2a2a;
             }
         </style>
     </th:block>

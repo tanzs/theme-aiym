@@ -4,6 +4,47 @@ metadata:
   name: theme-aiym
 spec:
   forms:
+    - group: appearance
+      label: "外观设置"
+      formSchema:
+        - $formkit: color
+          name: brandColor
+          label: "品牌色"
+          help: "按钮、链接、激活状态等（hover/浅色自动计算）"
+          value: "#42A5F5"
+        - $formkit: color
+          name: bgColor
+          label: "页面背景色"
+          help: "页面大背景，暗色模式自动反转"
+          value: "#faf8f5"
+        - $formkit: color
+          name: contentBgColor
+          label: "内容背景色"
+          help: "文章卡片、代码块等，暗色模式自动反转"
+          value: "#ffffff"
+        - $formkit: select
+          name: defaultMode
+          label: "默认模式"
+          value: "system"
+          options:
+            - label: "跟随系统"
+              value: "system"
+            - label: "浅色模式"
+              value: "light"
+            - label: "深色模式"
+              value: "dark"
+        - $formkit: switch
+          name: showThemeToggle
+          label: "显示主题切换按钮"
+          value: true
+        - $formkit: switch
+          name: enableAnimation
+          label: "启用动画"
+          value: true
+
+
+
+
     - group: content
       label: "内容设置"
       formSchema:
@@ -43,45 +84,6 @@ spec:
 
 
 
-    - group: appearance
-      label: "外观设置"
-      formSchema:
-        - $formkit: color
-          name: brandColor
-          label: "主题色（主色）"
-          help: "按钮、链接、激活状态等"
-          value: "#42A5F5"
-        - $formkit: color
-          name: brandColorHover
-          label: "主题色（深色）"
-          help: "按钮悬停、链接悬停等"
-          value: "#1E88E5"
-        - $formkit: color
-          name: brandColorLight
-          label: "主题色（浅色背景）"
-          help: "标签背景、表格表头、高亮等"
-          value: "#E3F2FD"
-        - $formkit: select
-          name: defaultMode
-          label: "默认模式"
-          value: "system"
-          options:
-            - label: "跟随系统"
-              value: "system"
-            - label: "浅色模式"
-              value: "light"
-            - label: "深色模式"
-              value: "dark"
-        - $formkit: switch
-          name: showThemeToggle
-          label: "显示主题切换按钮"
-          value: true
-        - $formkit: switch
-          name: enableAnimation
-          label: "启用动画"
-          value: true
-
-
 
     - group: resource
       label: "资源设置"
@@ -100,6 +102,7 @@ spec:
           help: "在文章末尾显示，支持 Markdown 格式，如 # 使用说明、# 免责声明"
           rows: 8
           value: "# 使用说明\n\n1. 请从官方渠道下载软件\n2. 安装前请关闭杀毒软件\n3. 如有问题请查看官方文档\n\n# 免责声明\n\n本页面提供的资源链接均来自公开网络，仅供学习与参考使用。"
+
 
 
 
@@ -150,6 +153,7 @@ spec:
 
 
 
+
     - group: search
       label: "搜索设置"
       formSchema:
@@ -164,6 +168,7 @@ spec:
           help: "如果 tag 类型不可用，用这个 textarea 输入关键词，每行一个"
           rows: 3
           placeholder: "NAS&#10;Docker&#10;fnOS&#10;Linux"
+
 
 
 
@@ -206,6 +211,7 @@ spec:
               if: "$value.action == 'copy'"
               label: "二维码图片 URL"
               help: "点击后弹窗展示二维码，留空则直接复制"
+
 
 
 

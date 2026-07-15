@@ -2,7 +2,7 @@
 
 > 为开发者打造的现代化 Halo 2.x 博客主题
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.1-blue)
 ![Halo](https://img.shields.io/badge/Halo-2.25.0%2B-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
