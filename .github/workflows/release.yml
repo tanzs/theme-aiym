@@ -39,7 +39,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           cat << 'EOF' > release_notes.md
-          ## AIYM-启梦 v${VERSION}
+          ## theme-aiym v${VERSION}
 
           ### ✨ 新特性
           - 主题名称更改为 **AIYM-启梦**
@@ -59,8 +59,8 @@ jobs:
 
           ### 🔗 相关链接
           - 主页: https://www.aiym.fun
-          - 文档: https://github.com/aiym/theme-aiym#readme
-          - 反馈: https://github.com/aiym/theme-aiym/issues
+          - 文档: https://github.com/tanzs/theme-aiym#readme
+          - 反馈: https://github.com/tanzs/theme-aiym/issues
           EOF
 
           # 替换版本号
@@ -69,7 +69,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "AIYM-启梦 v${{ steps.version.outputs.VERSION }}"
+          name: "theme-aiym v${{ steps.version.outputs.VERSION }}"
           body_path: release_notes.md
           draft: false
           prerelease: false
