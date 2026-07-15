@@ -110,6 +110,13 @@ class SearchModal {
       el.addEventListener("click", () => this.close());
     });
 
+    // Click outside panel to close
+    this.modal.addEventListener("click", (e) => {
+      if (e.target === this.modal) {
+        this.close();
+      }
+    });
+
     // Input events
     if (this.input) {
       this.input.addEventListener("input", () => this.handleInput());

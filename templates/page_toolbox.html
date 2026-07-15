@@ -160,36 +160,71 @@
     <script th:inline="javascript">
     /*<![CDATA[*/
     (function() {
-        var raw = /*[[${theme.config.toolbox}]]*/ null;
-        if (!raw) return;
-        var cfg = raw.realNode || raw;
-
-        var categories = cfg.toolboxCategories || [];
-        var items = cfg.toolboxItems || [];
-        var brandColor = cfg.toolboxBrandColor || '#9b7ed8';
-
-        /* 注入品牌色 CSS 变量 */
+        var brandColor = '#9b7ed8';
         var root = document.documentElement;
         root.style.setProperty('--tb-brand', brandColor);
 
-        if (!items.length) return;
-
-        /* 自动发现分类：settings 配置 + 工具中引用的分类 */
-        var catSet = new Set();
-        categories.forEach(function(c) { if (c) catSet.add(c); });
-        items.forEach(function(item) { if (item.cat) catSet.add(item.cat); });
-        var allCats = Array.from(catSet);
-
-        /* 状态 */
-        var currentCat = 'all';
-        var searchVal = '';
         var catsEl = document.getElementById('tb-cats');
         var gridEl = document.getElementById('tb-grid');
         var countEl = document.getElementById('tb-count');
         var emptyEl = document.getElementById('tb-empty');
+        var currentCat = 'all';
+        var searchVal = '';
+        var allItems = [];
 
-        /* 渲染分类标签 */
+        /* 从 API 拉取所有 tools/ 路径的页面 */
+        fetch('/apis/api.content.halo.run/v1alpha1/singlepages?size=50')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var pages = data.items || [];
+                pages.forEach(function(page) {
+                    var slug = (page.spec || {}).slug || '';
+                    if (slug.indexOf('tools/') !== 0 || slug === 'tools') return;
+                    var ann = (page.metadata || {}).annotations || {};
+                    allItems.push({
+                        name: (page.spec || {}).title || slug.split('/').pop(),
+                        desc: (page.spec || {}).excerpt && (page.spec.excerpt || {}).raw || '',
+                        icon: ann['tools.icon'] || 'mdi:puzzle',
+                        color: ann['tools.color'] || brandColor,
+                        bg: ann['tools.bg'] || (brandColor + '18'),
+                        cat: ann['tools.cat'] || '其他',
+                        path: '/' + slug,
+                        sort: parseInt(ann['tools.sort'] || '99')
+                    });
+                });
+                /* 合并外部工具（来自主题设置） */
+                var raw = /*[[${theme.config.toolbox}]]*/ null;
+                if (raw) {
+                    var cfg = raw.realNode || raw;
+                    var extItems = cfg.toolboxItems || [];
+                    extItems.forEach(function(item) {
+                        if ((item.path || '').indexOf('http') !== 0) return;
+                        allItems.push({
+                            name: item.name || '',
+                            desc: item.desc || '',
+                            icon: item.icon || 'mdi:link',
+                            color: item.color || brandColor,
+                            bg: item.bg || (brandColor + '18'),
+                            cat: item.cat || '外部',
+                            path: item.path,
+                            badge: item.badge || '',
+                            sort: 999
+                        });
+                    });
+                }
+                /* 按 sort 排序 */
+                allItems.sort(function(a, b) { return a.sort - b.sort; });
+                renderCats();
+                renderGrid();
+            })
+            .catch(function() {
+                gridEl.innerHTML = '<div class="tb-empty"><div class="tb-empty__icon">⚠️</div><div class="tb-empty__text">加载失败</div></div>';
+            });
+
         function renderCats() {
+            var catSet = new Set();
+            allItems.forEach(function(item) { if (item.cat) catSet.add(item.cat); });
+            var allCats = Array.from(catSet);
             var h = '<button class="tb-cat active" data-cat="all">全部</button>';
             allCats.forEach(function(cat) {
                 h += '<button class="tb-cat" data-cat="' + esc(cat) + '">' + esc(cat) + '</button>';
@@ -205,10 +240,9 @@
             });
         }
 
-        /* 渲染工具卡片 */
         function renderGrid() {
             var kw = searchVal.toLowerCase();
-            var filtered = items.filter(function(item) {
+            var filtered = allItems.filter(function(item) {
                 if (currentCat !== 'all' && item.cat !== currentCat) return false;
                 if (kw) {
                     return (item.name || '').toLowerCase().indexOf(kw) !== -1
@@ -228,43 +262,31 @@
 
             var h = '';
             filtered.forEach(function(item, i) {
-                var isExternal = (item.path || '').indexOf('http') === 0;
-                var tag = isExternal ? ' target="_blank" rel="noopener"' : '';
-                var bg = item.bg || (brandColor + '18');
-                var color = item.color || brandColor;
-                var badge = item.badge ? '<span class="tb-badge">' + esc(item.badge) + '</span>' : '';
-
-                h += '<a class="tb-card" href="' + esc(item.path || '#') + '"' + tag
+                h += '<a class="tb-card" href="' + esc(item.path) + '"'
                    + ' style="animation-delay:' + (i * 40) + 'ms">';
-                h += '<div class="tb-icon" style="background:' + esc(bg) + '">';
-                h += '<span class="iconify" data-icon="' + esc(item.icon || '') + '" style="color:' + esc(color) + ';font-size:22px"></span>';
+                h += '<div class="tb-icon" style="background:' + esc(item.bg) + '">';
+                h += '<span class="iconify" data-icon="' + esc(item.icon) + '" style="color:' + esc(item.color) + ';font-size:22px"></span>';
                 h += '</div>';
                 h += '<div class="tb-info">';
-                h += '<div class="tb-name">' + esc(item.name || '') + badge + '</div>';
-                h += '<div class="tb-desc">' + esc(item.desc || '') + '</div>';
+                h += '<div class="tb-name">' + esc(item.name) + '</div>';
+                h += '<div class="tb-desc">' + esc(item.desc) + '</div>';
                 h += '</div></a>';
             });
             gridEl.innerHTML = h;
 
-            /* 重新触发 Iconify 渲染 */
             if (window.Iconify && window.Iconify.renderDOM) {
                 window.Iconify.renderDOM(gridEl);
             }
         }
 
-        /* 搜索 */
-        var timer = null;
         document.getElementById('tb-search').addEventListener('input', function() {
-            clearTimeout(timer);
             var self = this;
-            timer = setTimeout(function() {
+            clearTimeout(self._timer);
+            self._timer = setTimeout(function() {
                 searchVal = self.value.trim();
                 renderGrid();
             }, 150);
         });
-
-        renderCats();
-        renderGrid();
 
         function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     })();

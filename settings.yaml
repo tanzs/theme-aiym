@@ -41,20 +41,7 @@ spec:
           min: 1
           max: 20
 
-    - group: search
-      label: "搜索设置"
-      formSchema:
-        - $formkit: tag
-          name: hotKeywords
-          label: "热门搜索关键词"
-          help: "输入关键词后回车，显示在搜索弹窗的热门搜索区域"
-          placeholder: "输入关键词后回车"
-        - $formkit: textarea
-          name: hotKeywordsText
-          label: "热门搜索（备用）"
-          help: "如果 tag 类型不可用，用这个 textarea 输入关键词，每行一个"
-          rows: 3
-          placeholder: "NAS&#10;Docker&#10;fnOS&#10;Linux"
+
 
     - group: appearance
       label: "外观设置"
@@ -94,6 +81,8 @@ spec:
           label: "启用动画"
           value: true
 
+
+
     - group: resource
       label: "资源设置"
       formSchema:
@@ -112,18 +101,71 @@ spec:
           rows: 8
           value: "# 使用说明\n\n1. 请从官方渠道下载软件\n2. 安装前请关闭杀毒软件\n3. 如有问题请查看官方文档\n\n# 免责声明\n\n本页面提供的资源链接均来自公开网络，仅供学习与参考使用。"
 
-    - group: seo
-      label: "SEO 设置"
+
+
+    - group: toolbox
+      label: "工具箱"
       formSchema:
-        - $formkit: textarea
-          name: siteDescription
-          label: "站点描述"
-          rows: 2
-          help: "留空时使用 Halo 系统设置中的站点描述"
         - $formkit: text
-          name: keywords
-          label: "站点关键词"
-          placeholder: "用英文逗号分隔"
+          name: _hint
+          label: ""
+          help: "📌 内置工具：路径以 /tools/ 开头的自定义页面会自动展示在工具箱中，无需手动配置。每个工具的名称取自页面标题，简介取自页面摘要，图标/分类/颜色在页面 Annotations 中设置（tools.icon、tools.cat、tools.color、tools.bg、tools.sort）。🔗 外部工具：下方可添加 https 外链工具，会在新窗口打开。"
+          value: ""
+        - $formkit: repeater
+          name: toolboxItems
+          label: "外部工具（https 链接）"
+          children:
+            - $formkit: text
+              name: name
+              label: "工具名称"
+              validation: required
+            - $formkit: text
+              name: desc
+              label: "简短描述"
+            - $formkit: text
+              name: icon
+              label: "图标 (Iconify)"
+              help: "如 mdi-code-json、tabler:hash"
+            - $formkit: color
+              name: color
+              label: "图标颜色"
+              value: "#9b7ed8"
+            - $formkit: color
+              name: bg
+              label: "图标背景色"
+              value: "#f3eefa"
+            - $formkit: text
+              name: path
+              label: "链接地址"
+              help: "必须是 https:// 开头的外部链接"
+              validation: required
+            - $formkit: text
+              name: cat
+              label: "分类"
+            - $formkit: text
+              name: badge
+              label: "标签"
+              help: "可选，如：免费、hot"
+          value: []
+
+
+
+    - group: search
+      label: "搜索设置"
+      formSchema:
+        - $formkit: tag
+          name: hotKeywords
+          label: "热门搜索关键词"
+          help: "输入关键词后回车，显示在搜索弹窗的热门搜索区域"
+          placeholder: "输入关键词后回车"
+        - $formkit: textarea
+          name: hotKeywordsText
+          label: "热门搜索（备用）"
+          help: "如果 tag 类型不可用，用这个 textarea 输入关键词，每行一个"
+          rows: 3
+          placeholder: "NAS&#10;Docker&#10;fnOS&#10;Linux"
+
+
 
     - group: about
       label: "关于页面"
@@ -165,194 +207,7 @@ spec:
               label: "二维码图片 URL"
               help: "点击后弹窗展示二维码，留空则直接复制"
 
-    - group: toolbox
-      label: "工具箱设置"
-      formSchema:
-        - $formkit: tag
-          name: toolboxCategories
-          label: "工具分类"
-          help: "输入分类名称后回车，工具可选择已有分类或输入新分类自动添加"
-          placeholder: "输入分类名称后回车"
-          value:
-            - 编码
-            - 转换
-            - 生成
-            - 开发
-            - 文本
-        - $formkit: repeater
-          name: toolboxItems
-          label: "工具列表"
-          children:
-            - $formkit: text
-              name: name
-              label: "工具名称"
-              validation: required
-            - $formkit: text
-              name: desc
-              label: "简短描述"
-            - $formkit: text
-              name: icon
-              label: "图标 (Iconify)"
-              help: "如 ri-braces-line、ri-code-s-slash-line"
-            - $formkit: color
-              name: color
-              label: "图标颜色"
-              value: "#9b7ed8"
-            - $formkit: color
-              name: bg
-              label: "图标背景色"
-              value: "#f3eefa"
-            - $formkit: text
-              name: path
-              label: "路径"
-              help: "内部页面路径如 /tools/json 或外链 https://..."
-              validation: required
-            - $formkit: select
-              name: target
-              label: "打开方式"
-              value: "_self"
-              options:
-                - label: "当前窗口"
-                  value: "_self"
-                - label: "新窗口打开"
-                  value: "_blank"
-            - $formkit: text
-              name: cat
-              label: "分类"
-              help: "输入已有分类名称，或输入新分类名自动添加到分类列表"
-            - $formkit: text
-              name: badge
-              label: "标签"
-              help: "可选，如：免费、hot、新"
-          value:
-            - name: "JSON 格式化"
-              desc: "JSON 校验、压缩、转义"
-              icon: "ri-braces-line"
-              color: "#4caf50"
-              bg: "#e8f5e9"
-              path: "/tools/json"
-              target: "_self"
-              cat: "开发"
-            - name: "Base64"
-              desc: "编解码 Base64 文本"
-              icon: "ri-code-s-slash-line"
-              color: "#ff9800"
-              bg: "#fff3e0"
-              path: "/tools/base64"
-              target: "_self"
-              cat: "编码"
-            - name: "URL 编解码"
-              desc: "URL encode / decode"
-              icon: "ri-link"
-              color: "#2196f3"
-              bg: "#e3f2fd"
-              path: "/tools/url"
-              target: "_self"
-              cat: "编码"
-            - name: "时间戳"
-              desc: "Unix 时间戳互转"
-              icon: "ri-time-line"
-              color: "#03a9f4"
-              bg: "#e1f5fe"
-              path: "/tools/timestamp"
-              target: "_self"
-              cat: "转换"
-            - name: "正则测试"
-              desc: "在线正则表达式测试"
-              icon: "ri-braces-line"
-              color: "#e91e63"
-              bg: "#fce4ec"
-              path: "/tools/regex"
-              target: "_self"
-              cat: "开发"
-            - name: "颜色转换"
-              desc: "HEX / RGB / HSL 转换"
-              icon: "ri-palette-line"
-              color: "#9c27b0"
-              bg: "#f3e5f5"
-              path: "/tools/color"
-              target: "_self"
-              cat: "转换"
-            - name: "二维码"
-              desc: "生成 / 解析 / Logo / 批量"
-              icon: "ri-qr-code-line"
-              color: "#4caf50"
-              bg: "#e8f5e9"
-              path: "/tools/qrcode"
-              target: "_self"
-              cat: "生成"
-            - name: "ID 生成器"
-              desc: "UUID / Nano ID / 短ID"
-              icon: "ri-key-2-line"
-              color: "#9b7ed8"
-              bg: "#f3e5f5"
-              path: "/tools/uuid"
-              target: "_self"
-              cat: "生成"
-            - name: "Hash 计算"
-              desc: "MD5 / SHA1 / SHA256"
-              icon: "ri-fingerprint-line"
-              color: "#607d8b"
-              bg: "#eceff1"
-              path: "/tools/hash"
-              target: "_self"
-              cat: "开发"
-            - name: "密码生成"
-              desc: "随机安全密码生成"
-              icon: "ri-lock-password-line"
-              color: "#f44336"
-              bg: "#ffebee"
-              path: "/tools/password"
-              target: "_self"
-              cat: "生成"
-            - name: "文本对比"
-              desc: "Diff 文本差异对比"
-              icon: "ri-file-list-line"
-              color: "#009688"
-              bg: "#e0f2f1"
-              path: "/tools/diff"
-              target: "_self"
-              cat: "文本"
-            - name: "Markdown"
-              desc: "Markdown 实时预览"
-              icon: "ri-markdown-line"
-              color: "#333333"
-              bg: "#f5f5f5"
-              path: "/tools/markdown"
-              target: "_self"
-              cat: "文本"
-            - name: "Cron 表达式"
-              desc: "Cron 定时任务解析"
-              icon: "ri-calendar-schedule-line"
-              color: "#795548"
-              bg: "#efebe9"
-              path: "/tools/cron"
-              target: "_self"
-              cat: "开发"
-            - name: "JWT 工具"
-              desc: "JWT Decoder / Encoder"
-              icon: "ri-shield-keyhole-line"
-              color: "#ff5722"
-              bg: "#fbe9e7"
-              path: "/tools/jwt"
-              target: "_self"
-              cat: "开发"
-            - name: "大小写转换"
-              desc: "驼峰/蛇形/标题大小写"
-              icon: "ri-text"
-              color: "#7c5fc4"
-              bg: "#f0ebf8"
-              path: "/tools/case"
-              target: "_self"
-              cat: "文本"
-            - name: "进制转换"
-              desc: "二 / 八 / 十 / 十六进制"
-              icon: "ri-calculator-line"
-              color: "#3f51b5"
-              bg: "#e8eaf6"
-              path: "/tools/base"
-              target: "_self"
-              cat: "转换"
+
 
     - group: record
       label: "备案信息"

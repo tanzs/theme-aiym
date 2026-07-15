@@ -2,7 +2,7 @@
 
 > 为开发者打造的现代化 Halo 2.x 博客主题
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![Halo](https://img.shields.io/badge/Halo-2.25.0%2B-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 
@@ -14,8 +14,8 @@
 - 📱 **完美移动端适配** — 底部导航 + 侧滑菜单，移动端体验对齐小程序
 - 🔍 **全局搜索弹窗** — `⌘/Ctrl + K` 唤起，支持搜索历史 + 热门关键词
 - 📦 **资源库中心** — 独立资源页 + 资源文章模板，支持下载链接、版本、平台等扩展字段
-- 🧰 **在线工具箱** — 内置 16 个开发者常用工具（JSON 格式化、正则测试、JWT 解码等），后台可配置
-- 🛠 **自定义 HTML 页面** — 工具以 HTML 块形式粘贴到页面，无需额外模板
+- 🧰 **在线工具箱** — 16 个开发者常用工具，自定义页面自动读取，后台 annotations 配置
+- 🛠 **自定义页面模板** — 工具详情页 `tool-detail` 模板，共享 CSS/JS，手机端完美适配
 - 📝 **文章详情页** — TOC 侧边栏 / 悬浮面板、代码复制、图片预览、正文引用追加
 - 🎯 **分类筛选** — 首页分类标签切换，支持无限滚动加载
 - ⚡ **纯 CSS/JS** — 无构建依赖，部署即用
@@ -31,22 +31,15 @@
 
 ## ⚙️ 配置说明
 
-### 基础设置
-
-| 选项 | 说明 |
-|------|------|
-| 网站 Logo | 上传 Logo 图片，推荐 36×36px 方形 |
-| 默认封面 | 文章无封面时使用的默认图片 |
-| 主导航菜单 | 选择 Halo 主菜单（支持 Iconify 图标注解） |
-
 ### 内容设置
 
 | 选项 | 说明 |
 |------|------|
 | 博客根分类 | 首页只显示此分类及其子分类下的文章 |
 | 资源根分类 | 资源中心只显示此分类及其子分类下的资源 |
-| 每页文章数 | 列表页每页文章数（默认 10） |
-| 热门文章数 | 首页热门文章数量（默认 5） |
+| 每页文章数 | 列表页每页文章数（默认 12） |
+| 热门文章数 | 首页热门文章数量（默认 6） |
+| 随机封面图库 | 文章无封面时从这些图片中随机选取 |
 
 ### 外观设置
 
@@ -56,29 +49,32 @@
 | 主题色 | 自定义品牌色（按钮、链接、激活状态等自动跟随） |
 | 主题色（深色） | 悬停态使用的深色版本 |
 | 主题色（浅色背景） | 标签背景、高亮等使用的浅色版本 |
-| 随机封面图库 | 文章无封面时从这些图片中随机选取 |
+| 启用动画 | 控制页面过渡动画 |
 
 ### 资源设置
 
 | 选项 | 说明 |
 |------|------|
-| 补充说明（Markdown） | 资源文章末尾显示的使用说明/免责声明，支持 Markdown 格式 |
-
-### SEO 与备案
-
-| 选项 | 说明 |
-|------|------|
-| 站点描述 | 留空时使用 Halo 系统设置中的站点描述 |
-| OG 默认图片 | 文章无封面时用于社交分享卡片 |
-| ICP 备案号 / 链接 | 配置后显示在页脚 |
-| 公安备案号 / 链接 | 配置后显示在页脚（带图标） |
+| 下载按钮文字 | 自定义下载按钮文本 |
+| 补充说明（Markdown） | 资源文章末尾显示的使用说明/免责声明 |
 
 ### 工具箱设置
 
-| 选项 | 说明 |
-|------|------|
-| 工具分类 | 用标签形式管理工具分类，支持增删 |
-| 工具列表 | 通过 repeater 配置工具名称、描述、图标、链接、分类等 |
+工具箱页面自动读取路径以 `/tools/` 开头的自定义页面，无需手动配置工具列表。
+
+每个工具通过页面 Annotations 配置：
+
+| Annotation Key | 说明 | 示例 |
+|----------------|------|------|
+| `tools.icon` | Iconify 图标 ID | `mdi:code-json` |
+| `tools.cat` | 分类名称 | `开发`、`编码`、`转换` |
+| `tools.color` | 图标颜色 | `#4caf50` |
+| `tools.bg` | 图标背景色 | `#e8f5e9` |
+| `tools.sort` | 排序序号（数字越小越靠前） | `0` |
+
+工具名称取自页面标题，简介取自页面摘要（excerpt）。
+
+外部 https 链接工具可在主题设置中手动添加。
 
 ## 📋 内置页面模板
 
@@ -95,8 +91,16 @@
 开发者工具聚合页面，包含：
 - 搜索 + 分类筛选
 - 工具卡片网格（响应式 2→3→4→5 列）
+- 从 API 动态读取工具数据
 - 外部链接自动新窗口打开
 - 后台创建单页面时选择 `toolbox` 模板
+
+### 工具详情页（`tool-detail`）
+
+单个工具的展示页面，包含：
+- 共享 CSS/JS（`tool-common.html`）
+- 手机端完美适配（padding 与 toolbox 一致）
+- 后台创建单页面时选择 `tool-detail` 模板
 
 ### 关于页面（`about`）
 
@@ -106,36 +110,28 @@
 - 联系方式（pipe 格式配置，后台可管理）
 - 后台创建单页面时选择 `about` 模板
 
-### 搜索页面（`search`）
-
-全局搜索弹窗（`⌘/Ctrl + K` 唤起）：
-- 品牌色图标 + 搜索框
-- 热门关键词 + 搜索历史
-- 桌面端双列网格 / 移动端全屏
-- 150ms 防抖
-
 ## 🧰 内置工具列表
 
-| 工具 | 说明 |
-|------|------|
-| JSON 格式化 | 树形视图 + 格式化 / 压缩 / 转义 |
-| Base64 编解码 | 文本 ↔ Base64 互转 |
-| URL 编解码 | URL 编码 / 解码 |
-| 时间戳转换 | Unix 时间戳 ↔ 可读日期 |
-| 正则测试 | 正则表达式测试 + 匹配高亮 |
-| 颜色转换 | HEX / RGB / HSL 互转 |
-| 二维码生成 | 输入内容生成二维码 |
-| ID 生成器 | UUID / Nano ID / 短 ID |
-| Hash 计算 | MD5 / SHA（Web Crypto API） |
-| 密码生成 | 自定义长度 + 字符类型 |
-| 文本对比 | 两段文本差异对比 |
-| Markdown 预览 | 实时 Markdown 渲染 |
-| Cron 解析 | Cron 表达式 → 可读描述 |
-| JWT 解码 | JWT Token 解码 |
-| 大小写转换 | 各种大小写格式转换 |
-| 进制转换 | 二/八/十/十六进制互转 |
+| 工具 | 说明 | 图标 |
+|------|------|------|
+| JSON 格式化 | 树形视图 + 格式化 / 压缩 / 转义 | `mdi:code-json` |
+| Base64 编解码 | 文本 ↔ Base64 互转 | `mdi:file-code` |
+| URL 编解码 | URL 编码 / 解码 | `mdi:link` |
+| 时间戳转换 | Unix 时间戳 ↔ 可读日期 | `mdi:calendar-clock` |
+| 正则测试 | 正则表达式测试 + 匹配高亮 | `mdi:regex` |
+| 颜色转换 | HEX / RGB / HSL 互转 | `mdi:palette` |
+| 二维码生成 | 输入内容生成二维码 | `mdi:qrcode` |
+| ID 生成器 | UUID / Nano ID / 短 ID | `mdi:identifier` |
+| Hash 计算 | MD5 / SHA（Web Crypto API） | `tabler:hash` |
+| 密码生成 | 自定义长度 + 字符类型 | `mdi:shield-key` |
+| 文本对比 | 两段文本差异对比 | `tabler:file-diff` |
+| Markdown 预览 | 实时 Markdown 渲染 | `mdi:language-markdown` |
+| Cron 解析 | Cron 表达式 → 可读描述 | `mdi:timer-cog` |
+| JWT 解码 | JWT Token 解码 | `mdi:key-variant` |
+| 大小写转换 | 各种大小写格式转换 | `mdi:format-letter-case` |
+| 进制转换 | 二/八/十/十六进制互转 | `mdi:code-braces` |
 
-工具以自包含 HTML 片段形式提供（`templates/tools/*.html`），粘贴到 Halo 页面内容中即可使用，无需额外安装。
+工具以自定义页面形式部署，使用 `tool-detail` 模板，通过 Halo API 管理。
 
 ## 🔧 资源文章字段
 
@@ -163,38 +159,22 @@
 
 ```
 theme-aiym/
-├── theme.yaml              # 主题元数据
-├── settings.yaml           # 主题设置定义
-├── annotation-setting.yaml # 文章注解设置
-├── screenshot.png          # 主题截图
+├── theme.yaml                  # 主题元数据（注册 tool-detail 模板）
+├── settings.yaml               # 主题设置定义
+├── annotation-setting.yaml     # 文章注解设置
+├── screenshot.png              # 主题截图
 ├── README.md
 └── templates/
     ├── index.html              # 首页（文章列表 + 分类筛选）
     ├── post.html               # 文章详情（资源/普通共用）
-    ├── page.html               # 独立页面（工具 HTML 块容器）
+    ├── page.html               # 独立页面
+    ├── page_tool_detail.html   # 工具详情页模板
     ├── page_resources.html     # 资源中心独立页
-    ├── page_toolbox.html       # 工具箱聚合页
+    ├── page_toolbox.html       # 工具箱聚合页（API 动态读取）
     ├── page_about.html         # 关于页面
     ├── category.html           # 分类页
     ├── archives.html           # 归档页
     ├── tags.html               # 标签页
-    ├── tools/                  # 自包含工具 HTML 块
-    │   ├── json.html           # JSON 格式化
-    │   ├── base64.html         # Base64 编解码
-    │   ├── url.html            # URL 编解码
-    │   ├── timestamp.html      # 时间戳转换
-    │   ├── regex.html          # 正则测试
-    │   ├── color.html          # 颜色转换
-    │   ├── qrcode.html         # 二维码生成
-    │   ├── uuid.html           # ID 生成器
-    │   ├── hash.html           # Hash 计算
-    │   ├── password.html       # 密码生成
-    │   ├── diff.html           # 文本对比
-    │   ├── markdown.html       # Markdown 预览
-    │   ├── cron.html           # Cron 解析
-    │   ├── jwt.html            # JWT 解码
-    │   ├── case.html           # 大小写转换
-    │   └── base.html           # 进制转换
     ├── error/                  # 错误页
     │   ├── 404.html
     │   └── 500.html
@@ -203,10 +183,13 @@ theme-aiym/
     │   ├── head.html           # head 标签（SEO）
     │   ├── header.html         # 页头（三栏：Logo + tabbar + 用户）
     │   ├── footer.html         # 页脚（备案 + 版权）
+    │   ├── tool-common.html    # 工具共享 CSS/JS
     │   └── mobile-nav.html     # 移动端导航
     └── assets/
         ├── css/style.css       # 主样式
-        └── js/main.js          # 主题管理 / 搜索 / TOC / 代码复制
+        └── js/
+            ├── main.js         # 主题管理 / 搜索 / TOC / 代码复制
+            └── iconify.js      # Iconify 图标库加载
 ```
 
 ## 🚀 快速开始
@@ -214,7 +197,7 @@ theme-aiym/
 ### 创建工具箱页面
 
 1. Halo 后台 → 内容 → 单篇页面 → 新建
-2. 标题填 `工具箱`，路径填 `toolbox`
+2. 标题填 `工具箱`，路径填 `tools`
 3. 模板选择 `toolbox`
 4. 保存 → 发布
 
@@ -228,10 +211,19 @@ theme-aiym/
 ### 创建工具页面
 
 1. Halo 后台 → 内容 → 单篇页面 → 新建
-2. 标题填工具名，路径填 `tools/json`（示例）
-3. 模板选择 `page`
-4. 内容切换到 **HTML 模式**，粘贴 `templates/tools/json.html` 全部内容
-5. 保存 → 发布
+2. 标题填工具名（如 `JSON 格式化`），路径填 `tools/json`
+3. 模板选择 `tool-detail`
+4. 内容切换到 **HTML 模式**，粘贴工具 HTML 代码
+5. 在页面 **Annotations** 中添加配置：
+   - `tools.icon`: `mdi:code-json`
+   - `tools.cat`: `开发`
+   - `tools.color`: `#4caf50`
+   - `tools.bg`: `#e8f5e9`
+   - `tools.sort`: `0`
+6. 设置页面**摘要**（excerpt）为工具简介
+7. 保存 → 发布
+
+工具会自动出现在工具箱页面中。
 
 ## 🔨 开发
 

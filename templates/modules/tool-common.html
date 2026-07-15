@@ -1,0 +1,120 @@
+<!-- 工具箱公共模块：共享 CSS + JS 工具函数 -->
+<!-- 被 page_tool_detail.html 引用 -->
+<th:block th:fragment="toolCommon">
+
+<style>
+/* ===== 工具详情页共享样式 ===== */
+.tool-page{max-width:1100px;margin:0 auto;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+/* Tabs */
+.tool-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--color-bg-secondary);border-radius:12px;padding:8px 12px;border:1px solid var(--color-border-primary);flex-wrap:wrap}
+.tool-tab{display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--color-text-secondary);font-family:inherit;transition:all .15s;white-space:nowrap}
+.tool-tab:hover{background:rgba(var(--color-brand-rgb,155,126,216),.08)}
+.tool-tab.active{background:var(--color-brand);color:#fff}
+/* Panels (dual pane) */
+.tool-panels{display:flex;flex-direction:column;gap:12px}
+@media(min-width:768px){.tool-panels{flex-direction:row}.tool-panel{flex:1;min-width:0}}
+/* Card */
+.tool-card{background:var(--color-bg-secondary);border-radius:14px;border:1px solid var(--color-border-primary);overflow:hidden;display:flex;flex-direction:column}
+.tool-card-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--color-border-primary)}
+.tool-card-title{font-size:13px;font-weight:600;color:var(--color-text-secondary)}
+.tool-card-actions{display:flex;gap:12px}
+.tool-card-action{font-size:13px;color:var(--color-brand);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+.tool-card-action:hover{opacity:.8}
+.tool-card-body{padding:12px 16px}
+.tool-card-footer{padding:8px 16px;border-top:1px solid var(--color-border-primary)}
+/* Inputs */
+.tool-textarea{width:100%;min-height:120px;padding:10px 14px;font-size:14px;font-family:'SF Mono','Menlo','JetBrains Mono',monospace;background:var(--color-bg-tertiary);border:1.5px solid var(--color-border-primary);border-radius:var(--radius-md);color:var(--color-text-primary);outline:none;resize:vertical;line-height:1.6;box-sizing:border-box}
+.tool-textarea:focus{border-color:var(--color-brand);box-shadow:0 0 0 3px var(--color-brand-glow)}
+.tool-input{width:100%;padding:10px 14px;font-size:14px;font-family:inherit;background:var(--color-bg-tertiary);border:1.5px solid var(--color-border-primary);border-radius:var(--radius-md);color:var(--color-text-primary);outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--color-brand);box-shadow:0 0 0 3px var(--color-brand-glow)}
+.mono{font-family:'SF Mono','Menlo','JetBrains Mono',monospace}
+/* Stats */
+.tool-stats{font-size:12px;color:var(--color-text-muted)}
+/* Result */
+.tool-result-box{background:var(--color-bg-tertiary);border-radius:10px;padding:12px 14px;font-family:'SF Mono','Menlo',monospace;font-size:13px;line-height:1.6;color:var(--color-text-primary);word-break:break-all;white-space:pre-wrap;overflow:auto}
+.tool-result-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--color-border-primary)}
+.tool-result-row:last-child{border-bottom:none}
+.tool-result-label{font-size:12px;font-weight:600;color:var(--color-text-secondary);min-width:60px;flex-shrink:0}
+.tool-result-value{flex:1;font-family:'SF Mono','Menlo',monospace;font-size:13px;word-break:break-all;color:var(--color-text-primary)}
+/* Buttons */
+.tool-btn{display:inline-flex;align-items:center;gap:4px;padding:8px 16px;font-size:13px;font-weight:600;border:none;border-radius:var(--radius-md);cursor:pointer;transition:all .2s;font-family:inherit}
+.tool-btn-primary{background:var(--color-brand);color:#fff}
+.tool-btn-primary:hover{background:var(--color-brand-hover)}
+.tool-btn-ghost{background:var(--color-bg-tertiary);color:var(--color-text-secondary);border:1px solid var(--color-border-primary)}
+.tool-btn-ghost:hover{border-color:var(--color-brand);color:var(--color-brand)}
+.tool-btn-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+/* Chip / Tag */
+.tool-chip{display:inline-flex;align-items:center;padding:5px 12px;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;background:var(--color-bg-tertiary);color:var(--color-text-secondary);border:1px solid var(--color-border-primary);transition:all .15s}
+.tool-chip:hover{border-color:var(--color-brand);color:var(--color-brand)}
+/* Toggle group */
+.tool-toggle{display:flex;gap:4px;flex-wrap:wrap}
+.tool-toggle-btn{padding:5px 10px;font-size:12px;font-weight:500;border-radius:6px;cursor:pointer;background:none;border:1px solid var(--color-border-primary);color:var(--color-text-secondary);font-family:inherit;transition:all .15s}
+.tool-toggle-btn:hover{border-color:var(--color-brand);color:var(--color-brand)}
+.tool-toggle-btn.active{background:var(--color-brand);color:#fff;border-color:var(--color-brand)}
+/* Copy toast */
+.tool-copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:8px 20px;background:var(--color-success);color:#fff;border-radius:20px;font-size:13px;font-weight:600;z-index:999;animation:toolPop .3s ease-out}
+@keyframes toolPop{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* Error */
+.tool-error{display:flex;align-items:flex-start;gap:8px;padding:12px 16px;background:rgba(232,93,58,.06);margin:12px;border-radius:10px}
+.tool-error-icon{font-size:18px;color:#e85d3a;flex-shrink:0;margin-top:1px}
+.tool-error-text{font-size:13px;color:#e85d3a;line-height:1.6}
+/* Empty */
+.tool-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--color-text-muted)}
+.tool-empty-icon{font-size:40px;margin-bottom:12px;opacity:.6}
+.tool-empty-text{font-size:14px}
+/* Slider */
+.tool-slider-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+.tool-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--color-border-primary);outline:none;cursor:pointer}
+.tool-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--color-brand);cursor:pointer}
+/* Label */
+.tool-label{font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;display:block}
+.tool-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tool-label-hint{font-size:12px;color:var(--color-text-muted)}
+/* Builder row */
+.tool-builder-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.tool-builder-label{font-size:13px;color:var(--color-text-secondary);min-width:50px;flex-shrink:0}
+.tool-builder-input{flex:1;padding:8px 10px;font-size:13px;font-family:'SF Mono','Menlo',monospace;background:var(--color-bg-tertiary);border:1px solid var(--color-border-primary);border-radius:8px;color:var(--color-text-primary);outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-builder-input:focus{border-color:var(--color-brand)}
+/* Input group */
+.tool-input-group{display:flex;gap:8px;align-items:center}
+.tool-input-group .tool-input{flex:1}
+
+/* ===== 手机端适配 ===== */
+@media(max-width:767px){
+  .tool-page{padding:0 !important;max-width:100% !important}
+  .tool-page .tool-tabs{border-radius:0;padding:6px 12px;gap:3px}
+  .tool-page .tool-tab{padding:5px 10px;font-size:12px}
+  .tool-page .tool-card{border-radius:0;border-left:none;border-right:none;margin-bottom:8px}
+  .tool-page .tool-card-header{padding:10px 14px}
+  .tool-page .tool-card-body{padding:10px 14px}
+  .tool-page .tool-card-footer{padding:6px 14px}
+  .tool-page .tool-textarea{min-height:140px}
+  .tool-page .tool-btn-row{gap:6px}
+  .tool-page .tool-btn{padding:7px 14px;font-size:12px}
+  .tool-page .tool-chips{gap:6px}
+  .tool-page .tool-chip{padding:4px 10px;font-size:11px}
+  .tool-page .tool-input-group{flex-wrap:wrap}
+  .tool-page .tool-input{padding:9px 12px;font-size:13px}
+  .tool-page .tool-panels{gap:8px}
+  .tool-page .tool-copied{top:12px;font-size:12px;padding:6px 16px}
+  .tool-page .tool-result-row{padding:6px 0;gap:6px}
+  .tool-page .tool-result-label{font-size:11px;min-width:40px}
+  .tool-page .tool-result-value{font-size:12px}
+  .tool-page .tool-builder-row{margin-bottom:6px}
+  .tool-page .tool-toggle-btn{padding:4px 8px;font-size:11px}
+}
+</style>
+
+<script>
+/* ===== 工具详情页共享 JS ===== */
+function toolCopy(t){
+  if(navigator.clipboard){navigator.clipboard.writeText(t)}
+  var d=document.createElement('div');d.className='tool-copied';d.textContent='✓ 已复制';
+  document.body.appendChild(d);setTimeout(function(){d.remove()},1500);
+}
+function toolEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toolDebounce(fn,delay){var t;return function(){clearTimeout(t);var args=arguments;var ctx=this;t=setTimeout(function(){fn.apply(ctx,args)},delay)}}
+function toolStats(text){if(!text)return'';return text.split('\n').length+' 行 · '+text.length+' 字符'}
+</script>
+
+</th:block>

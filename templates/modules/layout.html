@@ -174,6 +174,7 @@
     @media (min-width: 1280px) { .site-content > .container { max-width: 1200px; } }
     .page-content { max-width: 1200px; margin: 0 auto; padding: 0 12px; box-sizing: border-box; }
     @media (min-width: 768px) { .page-content { padding: 0 24px; } }
+    @media (max-width: 767px) { .page-content { padding: 0; } }
     .home { max-width: 1200px; margin: 0 auto; padding: 0 32px; box-sizing: border-box; }
     /* 分类筛选基础样式（防 FOUC，详细样式在 index.html） */
     .category-filter { overflow-x: auto; scrollbar-width: none; position: sticky; top: 56px; z-index: 90; padding: 8px 0 !important; margin: 0; background: var(--color-bg-primary); text-align: left; }
@@ -285,6 +286,13 @@
     .search-modal__footer-hint kbd { font-size: 10px; padding: 1px 5px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border-primary); border-radius: 3px; font-family: var(--font-sans); }
     .search-modal__count { font-size: 11px; color: var(--color-text-muted); }
 
+    .search-modal__close-btn { display: none; }
+    @media (max-width: 767px) {
+        .search-modal__close-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; margin-right: 8px; flex-shrink: 0; border-radius: 10px; background: none; border: none; cursor: pointer; color: var(--color-text-secondary); transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
+        .search-modal__close-btn:hover, .search-modal__close-btn:active { background: rgba(0,0,0,0.05); color: var(--color-text-primary); }
+        [data-theme="dark"] .search-modal__close-btn:hover, [data-theme="dark"] .search-modal__close-btn:active { background: rgba(255,255,255,0.08); }
+    }
+
     /* 桌面端结果两列 */
     @media (min-width: 768px) {
         .search-modal__results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 8px 16px 16px; }
@@ -296,8 +304,8 @@
         .search-modal { padding-top: 0; align-items: stretch; }
         .search-modal__panel { width: 100%; max-width: 100%; max-height: 100vh; border-radius: 0; min-height: 100vh; }
         .search-modal__bar { padding: 10px 12px; }
-        .search-modal__results { padding: 8px 12px 16px; }
-        .search-modal__result-excerpt { display: none; }
+        .search-modal__results { padding: 8px 12px 16px; gap: 10px; display: flex; flex-direction: column; }
+        .search-modal__body { padding-bottom: 40px; }
         .search-modal__result-footer { margin-top: 4px; }
     }
     </style>
@@ -344,6 +352,9 @@
         <div class="search-modal__panel">
             <!-- 搜索框区域 -->
             <div class="search-modal__bar">
+                <button type="button" class="search-modal__close-btn" data-search-close aria-label="关闭">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
                 <div class="search-modal__input-wrap">
                     <div class="search-modal__icon-wrap">
                         <svg class="search-modal__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
