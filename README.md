@@ -131,7 +131,7 @@
 | 大小写转换 | 各种大小写格式转换 | `mdi:format-letter-case` |
 | 进制转换 | 二/八/十/十六进制互转 | `mdi:code-braces` |
 
-工具以自定义页面形式部署，使用 `tool-detail` 模板，通过 Halo API 管理。
+工具**不是主题内置的**，需要手动创建自定义页面（使用 `tool-detail` 模板）。完整的 16 个工具 HTML 源码在 [tools-html/](https://github.com/tanzs/theme-aiym/tree/main/tools-html) 目录，可直接复制使用。
 
 ## 🔧 资源文章字段
 
@@ -210,20 +210,90 @@ theme-aiym/
 
 ### 创建工具页面
 
+工具**不是内置的**，需要手动创建自定义页面。每个工具是一个独立的 HTML 页面，使用 `tool-detail` 模板。
+
+**步骤：**
+
 1. Halo 后台 → 内容 → 单篇页面 → 新建
 2. 标题填工具名（如 `JSON 格式化`），路径填 `tools/json`
 3. 模板选择 `tool-detail`
-4. 内容切换到 **HTML 模式**，粘贴工具 HTML 代码
-5. 在页面 **Annotations** 中添加配置：
-   - `tools.icon`: `mdi:code-json`
-   - `tools.cat`: `开发`
-   - `tools.color`: `#4caf50`
-   - `tools.bg`: `#e8f5e9`
-   - `tools.sort`: `0`
-6. 设置页面**摘要**（excerpt）为工具简介
+4. 内容切换到 **HTML 模式**，粘贴工具 HTML 代码（见下方示例）
+5. 设置页面**摘要**（excerpt）为工具简介（如 `JSON 校验、压缩、转义`）
+6. 在页面 **Annotations** 中添加配置：
+   - `tools.icon`: `mdi:code-json`（Iconify 图标 ID）
+   - `tools.cat`: `开发`（分类名称）
+   - `tools.color`: `#4caf50`（图标颜色）
+   - `tools.bg`: `#e8f5e9`（图标背景色）
+   - `tools.sort`: `0`（排序序号，数字越小越靠前）
 7. 保存 → 发布
 
 工具会自动出现在工具箱页面中。
+
+**示例代码（Base64 编解码工具）：**
+
+```html
+<style>
+.tool-page{max-width:1100px;margin:0 auto;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.tool-panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:300px}
+@media(max-width:767px){.tool-panels{grid-template-columns:1fr}}
+.tool-card{background:var(--color-bg-secondary);border-radius:14px;border:1px solid var(--color-border-primary);overflow:hidden;display:flex;flex-direction:column}
+.tool-card-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--color-border-primary)}
+.tool-card-title{font-size:13px;font-weight:600;color:var(--color-text-secondary)}
+.tool-card-body{padding:12px 16px;flex:1;display:flex;flex-direction:column}
+.tool-textarea{width:100%;flex:1;min-height:200px;padding:10px 14px;font-size:14px;font-family:'SF Mono','Menlo',monospace;background:var(--color-bg-tertiary);border:1.5px solid var(--color-border-primary);border-radius:var(--radius-md);color:var(--color-text-primary);outline:none;resize:vertical;line-height:1.6;box-sizing:border-box}
+.tool-textarea:focus{border-color:var(--color-brand);box-shadow:0 0 0 3px var(--color-brand-glow)}
+.tool-card-footer{padding:8px 16px;border-top:1px solid var(--color-border-primary)}
+.tool-stats{font-size:12px;color:var(--color-text-muted)}
+.tool-btn-group{display:flex;gap:6px;margin:12px 0}
+.tool-btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--color-border-primary);background:var(--color-bg-secondary);color:var(--color-text-primary);transition:all .15s;font-family:inherit}
+.tool-btn:hover{border-color:var(--color-brand);color:var(--color-brand)}
+.tool-btn.primary{background:var(--color-brand);color:#fff;border-color:var(--color-brand)}
+.tool-btn.primary:hover{opacity:.9}
+</style>
+
+<div class="tool-page">
+  <div class="tool-panels">
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <span class="tool-card-title">输入</span>
+      </div>
+      <div class="tool-card-body">
+        <textarea class="tool-textarea" id="input" placeholder="输入要编码/解码的文本..."></textarea>
+      </div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <span class="tool-card-title">结果</span>
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-textarea" id="output" style="cursor:pointer;min-height:200px" onclick="toolCopy(this.textContent)">输入内容后点击编码/解码</div>
+      </div>
+    </div>
+  </div>
+  <div class="tool-btn-group">
+    <button class="tool-btn primary" onclick="encode()">编码 →</button>
+    <button class="tool-btn" onclick="decode()">← 解码</button>
+    <button class="tool-btn" onclick="document.getElementById('input').value='';document.getElementById('output').textContent=''">清空</button>
+  </div>
+</div>
+
+<script>
+function encode(){
+  try{
+    var v=document.getElementById('input').value;
+    document.getElementById('output').textContent=btoa(unescape(encodeURIComponent(v)));
+  }catch(e){document.getElementById('output').textContent='错误: '+e.message}
+}
+function decode(){
+  try{
+    var v=document.getElementById('input').value;
+    document.getElementById('output').textContent=decodeURIComponent(escape(atob(v)));
+  }catch(e){document.getElementById('output').textContent='错误: '+e.message}
+}
+</script>
+```
+
+> 💡 完整的 16 个工具 HTML 源码在 [tools-html/](https://github.com/tanzs/theme-aiym/tree/main/tools-html) 目录，可直接复制使用。
 
 ## 🔨 开发
 
